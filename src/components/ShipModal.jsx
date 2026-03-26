@@ -1,62 +1,18 @@
-import { useEffect, useRef, Suspense, Component } from 'react'
+import { useEffect, Component } from 'react'
 import { formatLocalTime } from '../utils/timeUtils'
-import { Canvas, useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
-import { OrbitControls, Float } from '@react-three/drei'
-import ShipModel from './ShipModel.jsx'
+import ShipViewer from './ShipModel.jsx'
 
 const RISK_COLORS = { HIGH: '#ff2d55', MEDIUM: '#ffb830', LOW: '#00e676' }
 const AIS_COLORS = { ABSENT: '#ff2d55', SPOOFED: '#ffb830', PRESENT: '#00e676' }
 
-/* ── Error boundary: bad GLB load never crashes the whole modal ── */
-class CanvasErrorBoundary extends Component {
-  constructor(props) { super(props); this.state = { error: null } }
-  static getDerivedStateFromError(e) { return { error: e } }
-  render() {
-    if (this.state.error) {
-      return (
-        <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)',
-          fontSize: 11, gap: 8, padding: 24, textAlign: 'center',
-        }}>
-          <span style={{ fontSize: 32 }}>🚢</span>
-          <span>3D MODEL UNAVAILABLE</span>
-          <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>
-            Add GLB files to /public/models/ to enable 3D view
-          </span>
-        </div>
-      )
-    }
-    return this.props.children
-  }
-}
-
-
 /**
  * Determine which GLB model to load for a given ship.
- *  - ABSENT AIS  → 'dark'   (dark vessel model)
- *  - Naval / patrol keyword → 'naval'
- *  - Everything else → 'cargo'
  */
 function getModelType(ship) {
   if (ship.ais_status === 'ABSENT') return 'dark'
   const vt = (ship.vessel_type || '').toLowerCase()
   if (vt.includes('naval') || vt.includes('warship') || vt.includes('patrol')) return 'naval'
   return 'cargo'
-}
-
-/* ── Spinning ring shown while GLB loads ── */
-function LoadingSpinner() {
-  const r = useRef()
-  useFrame((_, d) => { if (r.current) r.current.rotation.y += d * 2 })
-  return (
-    <mesh ref={r}>
-      <torusGeometry args={[0.9, 0.05, 8, 36]} />
-      <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={2} toneMapped={false} />
-    </mesh>
-  )
 }
 
 /* ── Intelligence Profile Field ── */
@@ -97,9 +53,6 @@ function ConfidenceBar({ value }) {
   )
 }
 
-/* ═══════════════════════════════════════════════
-   Main ShipModal — 3D GLB model + intel profile
-   ═══════════════════════════════════════════════ */
 export default function ShipModal({ ship, onClose }) {
   useEffect(() => {
     const h = (e) => { if (e.key === 'Escape') onClose() }
@@ -142,13 +95,15 @@ export default function ShipModal({ ship, onClose }) {
           background: `radial-gradient(ellipse at 50% 50%, rgba(4,10,24,0.3) 0%, rgba(2,5,10,0.95) 100%)`,
           borderRight: `1px solid ${color}22`,
           display: 'flex', flexDirection: 'column',
+          position: 'relative'
         }}>
           {/* Panel header */}
-          <div style={{
+            <div style={{
             padding: '14px 18px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             borderBottom: `1px solid ${color}22`, flexShrink: 0,
             background: `${color}07`,
+            zIndex: 10
           }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2px', color }}>◈ 3D VESSEL PROFILE</div>
@@ -170,56 +125,15 @@ export default function ShipModal({ ship, onClose }) {
             >✕</button>
           </div>
 
-          {/* Three.js Canvas — 3D Ship Viewer */}
+          {/* New Dynamic GLB Ship Viewer (Includes its own Canvas) */}
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-            <CanvasErrorBoundary>
-              <Canvas
-                camera={{ position: [2.5, 2.5, 4.5], fov: 38 }}
-                gl={{ antialias: true, alpha: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
-                shadows
-              >
-                <color attach="background" args={['#040a18']} />
-                <fog attach="fog" args={['#040a18', 6, 18]} />
-
-                {/* Lighting rig — warm sun + cool fill + underwater */}
-                <ambientLight intensity={0.4} color="#b0c4de" />
-                <directionalLight
-                  position={[8, 12, 6]} intensity={2.2} color="#ffeedd"
-                  castShadow shadow-mapSize={2048}
-                  shadow-camera-near={0.5} shadow-camera-far={30}
-                  shadow-camera-left={-5} shadow-camera-right={5}
-                  shadow-camera-top={5} shadow-camera-bottom={-5}
-                />
-                <directionalLight position={[-6, 4, -8]} intensity={0.5} color="#6688cc" />
-                <pointLight position={[0, -3, 0]} intensity={0.2} color="#112244" distance={8} />
-                <hemisphereLight skyColor="#334466" groundColor="#0a1428" intensity={0.3} />
-
-                {/* Ship model with floating animation */}
-                <Suspense fallback={<LoadingSpinner />}>
-                  <Float speed={1.2} rotationIntensity={0.08} floatIntensity={0.3} floatingRange={[-0.06, 0.06]}>
-                    <ShipModel type={modelType} risk={ship.risk} ship={ship} />
-                  </Float>
-                </Suspense>
-
-                <OrbitControls
-                  enablePan={false}
-                  minDistance={2.5}
-                  maxDistance={9}
-                  enableDamping
-                  dampingFactor={0.04}
-                  autoRotate
-                  autoRotateSpeed={0.4}
-                  maxPolarAngle={Math.PI / 1.9}
-                  minPolarAngle={Math.PI / 6}
-                />
-              </Canvas>
-            </CanvasErrorBoundary>
+            <ShipViewer type={modelType} ship={ship} />
             <div style={{
               position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
               fontSize: 10, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)',
               background: 'rgba(4,8,15,0.75)', padding: '3px 14px', borderRadius: 12,
               backdropFilter: 'blur(6px)', border: '1px solid rgba(0,212,255,0.07)',
-              whiteSpace: 'nowrap',
+              whiteSpace: 'nowrap', zIndex: 10, pointerEvents: 'none'
             }}>
               DRAG TO ROTATE · SCROLL TO ZOOM
             </div>

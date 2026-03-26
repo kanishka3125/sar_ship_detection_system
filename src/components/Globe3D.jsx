@@ -4,6 +4,7 @@ import { OrbitControls, Stars, Html, useTexture } from '@react-three/drei'
 import { Suspense } from 'react'
 import * as THREE from 'three'
 import { validateCoords } from '../utils/timeUtils'
+import { RESTRICTED_ZONES } from '../data/zones'
 
 const RISK_COLORS = { HIGH: '#ff2d55', MEDIUM: '#ffb830', LOW: '#00e676' }
 
@@ -97,16 +98,48 @@ function EarthFallback({ globeRef }) {
   )
 }
 
+/**
+ * ZoneOutlines
+ * Renders restricted maritime zones as 3D lines on the globe.
+ */
+function ZoneOutlines() {
+  const zoneLines = useMemo(() => {
+    return RESTRICTED_ZONES.map(zone => {
+      const points = zone.positions.map(([lat, lng]) => {
+        const [x, y, z] = latLngToVec3(lat, lng, 1.005)
+        return new THREE.Vector3(x, y, z)
+      })
+      // Close the loop
+      const [x0, y0, z0] = latLngToVec3(zone.positions[0][0], zone.positions[0][1], 1.005)
+      points.push(new THREE.Vector3(x0, y0, z0))
+      
+      const geometry = new THREE.BufferGeometry().setFromPoints(points)
+      return { geometry, color: zone.color, name: zone.name }
+    })
+  }, [])
+
+  return (
+    <group>
+      {zoneLines.map((line, i) => (
+        <line key={i} geometry={line.geometry}>
+          <lineBasicMaterial color={line.color} linewidth={2} transparent opacity={0.6} />
+        </line>
+      ))}
+    </group>
+  )
+}
+
 /* ── Pulsing ship marker — position is STABLE via useMemo ── */
 function ShipMarker({ ship, onSelect }) {
   const ref     = useRef()
   const ringRef = useRef()
   const [hovered, setHovered] = useState(false)
 
-  const color    = RISK_COLORS[ship.risk]
+  const isViolation = ship.isViolation
+  const color    = isViolation ? '#ff2d55' : RISK_COLORS[ship.risk]
   const threeCol = useMemo(() => new THREE.Color(color), [color])
-  const isHigh   = ship.risk === 'HIGH'
-  const size     = isHigh ? 0.026 : ship.risk === 'MEDIUM' ? 0.018 : 0.013
+  const isHigh   = ship.risk === 'HIGH' || isViolation
+  const size     = isViolation ? 0.032 : isHigh ? 0.026 : ship.risk === 'MEDIUM' ? 0.018 : 0.013
 
   // STABLE position: computed once per ship id/coords, never re-computed on unrelated renders
   const pos = useMemo(() => {
@@ -117,13 +150,16 @@ function ShipMarker({ ship, onSelect }) {
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (ref.current) {
-      const sc = 1 + Math.sin(t * (isHigh ? 3.5 : 2.2)) * (isHigh ? 0.38 : 0.14)
+      const speed = isViolation ? 5.5 : isHigh ? 3.5 : 2.2
+      const amp   = isViolation ? 0.55 : isHigh ? 0.38 : 0.14
+      const sc = 1 + Math.sin(t * speed) * amp
       ref.current.scale.setScalar(sc)
     }
     if (ringRef.current && isHigh) {
-      const phase = (t * 1.5) % 1
-      ringRef.current.scale.setScalar(1 + phase * 2.6)
-      ringRef.current.material.opacity = 0.75 * (1 - phase)
+      const ringSpeed = isViolation ? 2.5 : 1.5
+      const phase = (t * ringSpeed) % 1
+      ringRef.current.scale.setScalar(1 + phase * (isViolation ? 3.5 : 2.6))
+      ringRef.current.material.opacity = 0.8 * (1 - phase)
     }
   })
 
@@ -137,7 +173,7 @@ function ShipMarker({ ship, onSelect }) {
       {/* Core glow sphere */}
       <mesh ref={ref}>
         <sphereGeometry args={[size, 10, 10]} />
-        <meshStandardMaterial color={threeCol} emissive={threeCol} emissiveIntensity={hovered ? 4.5 : (isHigh ? 3.2 : 1.9)} toneMapped={false} />
+        <meshStandardMaterial color={threeCol} emissive={threeCol} emissiveIntensity={hovered ? 4.5 : (isViolation ? 5.0 : isHigh ? 3.2 : 1.9)} toneMapped={false} />
       </mesh>
 
       {/* Spike (vertical pin) */}
@@ -146,10 +182,10 @@ function ShipMarker({ ship, onSelect }) {
         <meshStandardMaterial color={threeCol} emissive={threeCol} emissiveIntensity={1.2} transparent opacity={0.55} toneMapped={false} />
       </mesh>
 
-      {/* Pulse ring for HIGH */}
+      {/* Pulse ring for HIGH/Violation */}
       {isHigh && (
         <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[size * 1.0, size * 1.8, 28]} />
+          <ringGeometry args={[size * 1.0, size * (isViolation ? 2.5 : 1.8), 28]} />
           <meshBasicMaterial color={threeCol} transparent opacity={0.7} side={THREE.DoubleSide} toneMapped={false} />
         </mesh>
       )}
@@ -163,16 +199,21 @@ function ShipMarker({ ship, onSelect }) {
             fontFamily: 'Space Grotesk, sans-serif', whiteSpace: 'nowrap',
             boxShadow: `0 6px 28px ${color}33, 0 0 0 1px ${color}22`,
           }}>
-            <div style={{ color, fontWeight: 700, fontSize: '12px' }}>{ship.vessel_name}</div>
+            <div style={{ color, fontWeight: 700, fontSize: '12px' }}>
+              {isViolation && <span style={{ marginRight: 6 }}>⚠</span>}
+              {ship.vessel_name}
+            </div>
             <div style={{ color: '#7a95b8', fontSize: '10px', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
               {ship.id} · {ship.vessel_type}
             </div>
+            {isViolation && (
+              <div style={{ color: '#ff2d55', fontSize: '10px', fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
+                ZONE VIOLATION: {ship.violatedZoneName}
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '4px', marginTop: '5px' }}>
               <span style={{ background: `${color}22`, color, padding: '1px 6px', borderRadius: '3px', fontSize: '9px', fontWeight: 700 }}>{ship.risk}</span>
               <span style={{ background: 'rgba(0,212,255,0.1)', color: '#00d4ff', padding: '1px 6px', borderRadius: '3px', fontSize: '9px' }}>AIS:{ship.ais_status}</span>
-            </div>
-            <div style={{ color: '#4488ff', fontSize: '9px', fontFamily: 'JetBrains Mono, monospace', marginTop: '5px', letterSpacing: '0.5px' }}>
-              CLICK TO INVESTIGATE →
             </div>
           </div>
         </Html>
@@ -206,6 +247,9 @@ function GlobeScene({ ships, onSelectShip }) {
         <EarthMesh globeRef={globeRef} />
       </Suspense>
 
+      {/* Restricted Zone Outlines on Sphere */}
+      <ZoneOutlines />
+
       {/* Ship markers — NOT children of globe group, so they don't rotate with it */}
       {validShips.map(ship => (
         <ShipMarker key={ship.id} ship={ship} onSelect={onSelectShip} />
@@ -230,6 +274,7 @@ function GlobeScene({ ships, onSelectShip }) {
 
 /* ── Legend ── */
 function Legend({ ships }) {
+  const violations = ships.filter(s => s.isViolation).length
   return (
     <div style={{
       position: 'absolute', top: 16, left: 16, zIndex: 10,
@@ -240,12 +285,27 @@ function Legend({ ships }) {
       <div style={{ color: '#00d4ff', fontWeight: 700, fontSize: '11px', letterSpacing: '2px', marginBottom: '8px' }}>
         🌍 LIVE GLOBE · SHIP POSITIONS
       </div>
+      
+      {violations > 0 && (
+        <div style={{ marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid rgba(255,45,85,0.2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff2d55', boxShadow: '0 0 10px #ff2d55' }} className="violation-pulse-dot" />
+            <span style={{ fontSize: 11, color: '#ff2d55', fontWeight: 800, letterSpacing: 0.5 }}>ZONE VIOLATIONS</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#ff2d55', fontWeight: 800 }}>{violations}</span>
+          </div>
+          <style>{`
+            @keyframes dotPulse { 0% { opacity: 1 } 50% { opacity: 0.3 } 100% { opacity: 1 } }
+            .violation-pulse-dot { animation: dotPulse 1s infinite; }
+          `}</style>
+        </div>
+      )}
+
       {[['HIGH','#ff2d55'],['MEDIUM','#ffb830'],['LOW','#00e676']].map(([r,c]) => (
         <div key={r} style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 5 }}>
           <div style={{ width:10, height:10, borderRadius:'50%', background:c, boxShadow:`0 0 8px ${c}, 0 0 16px ${c}55` }} />
           <span style={{ fontSize:11, color:c, fontWeight:500 }}>{r}</span>
           <span style={{ marginLeft:'auto', fontSize:11, color:'#3d5478', fontFamily:'JetBrains Mono,monospace' }}>
-            {ships.filter(s=>s.risk===r).length}
+            {ships.filter(s=>s.risk===r && !s.isViolation).length}
           </span>
         </div>
       ))}

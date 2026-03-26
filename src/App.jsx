@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import Navbar           from './components/Navbar.jsx'
 import Map2D            from './components/Map2D.jsx'
 import Globe3D          from './components/Globe3D.jsx'
@@ -9,6 +9,8 @@ import OnboardingOverlay from './components/OnboardingOverlay.jsx'
 
 import shipsData  from './data/ships.json'
 import alertsData from './data/alerts.json'
+import { RESTRICTED_ZONES } from './data/zones'
+import { findZoneViolation } from './utils/geoUtils'
 
 const ONBOARDING_KEY = 'zenith_onboarding_done'
 const THEME_KEY      = 'zenith_theme'
@@ -21,6 +23,39 @@ export default function App() {
   const [theme,         setTheme]         = useState(
     () => localStorage.getItem(THEME_KEY) || 'dark'
   )
+
+  // 1. Process ships for violations and 2. Generate dynamic alerts
+  const { processedShips, mergedAlerts } = useMemo(() => {
+    const dynamicViolations = []
+    
+    const ships = shipsData.map(ship => {
+      const violatedZone = findZoneViolation(ship.lat, ship.lng, RESTRICTED_ZONES)
+      if (violatedZone) {
+        const violationAlert = {
+          alert_id: `AUTO-ALT-${ship.id}`,
+          type: 'ZONE_VIOLATION',
+          vessel_id: ship.id,
+          vessel_name: ship.vessel_name,
+          lat: ship.lat,
+          lng: ship.lng,
+          severity: 'HIGH',
+          message: `CRITICAL: Vessel identified inside ${violatedZone.name}. Immediate identity verification required.`,
+          timestamp: new Date().toISOString(),
+          is_dynamic: true
+        }
+        dynamicViolations.push(violationAlert)
+        return { ...ship, isViolation: true, violatedZoneName: violatedZone.name }
+      }
+      return ship
+    })
+
+    // Combine static alerts with dynamic ones, avoiding duplicates for the same ship
+    const combinedAlerts = [...dynamicViolations, ...alertsData].filter(
+      (alert, index, self) => index === self.findIndex(a => a.vessel_id === alert.vessel_id)
+    ).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+
+    return { processedShips: ships, mergedAlerts: combinedAlerts }
+  }, [])
 
   const handleToggleTheme = useCallback(() => {
     setTheme(prev => {
@@ -51,16 +86,16 @@ export default function App() {
   }, [])
 
   const handleAlertClick = useCallback((alert) => {
-    const ship = shipsData.find(s => s.id === alert.vessel_id)
+    const ship = processedShips.find(s => s.id === alert.vessel_id)
     if (ship) {
       setFocusShip(ship)
       setSelectedShip(ship)
       setTimeout(() => setFocusShip(null), 300)
     }
-  }, [])
+  }, [processedShips])
 
-  const highCount  = shipsData.filter(s => s.risk === 'HIGH').length
-  const alertCount = alertsData.length
+  const highCount  = processedShips.filter(s => s.risk === 'HIGH' || s.isViolation).length
+  const alertCount = mergedAlerts.length
 
   return (
     <div
@@ -71,7 +106,7 @@ export default function App() {
       <Navbar
         viewMode={viewMode}
         onToggleView={setViewMode}
-        totalShips={shipsData.length}
+        totalShips={processedShips.length}
         highCount={highCount}
         alertCount={alertCount}
         theme={theme}
@@ -83,9 +118,9 @@ export default function App() {
         {/* Map / Globe Area */}
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           {viewMode === '2d' ? (
-            <Map2D ships={shipsData} onSelectShip={handleSelectShip} focusShip={focusShip} />
+            <Map2D ships={processedShips} onSelectShip={handleSelectShip} focusShip={focusShip} />
           ) : (
-            <Globe3D ships={shipsData} onSelectShip={handleSelectShip} />
+            <Globe3D ships={processedShips} onSelectShip={handleSelectShip} />
           )}
 
           {/* Overlay: View Mode Tag */}
@@ -104,11 +139,11 @@ export default function App() {
         </div>
 
         {/* Alerts Panel */}
-        <AlertsPanel alerts={alertsData} onAlertClick={handleAlertClick} />
+        <AlertsPanel alerts={mergedAlerts} onAlertClick={handleAlertClick} />
       </div>
 
       {/* Stats Bar */}
-      <StatsBar ships={shipsData} />
+      <StatsBar ships={processedShips} />
 
       {/* Ship Modal */}
       {selectedShip && <ShipModal ship={selectedShip} onClose={handleCloseModal} />}

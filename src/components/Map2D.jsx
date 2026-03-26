@@ -1,33 +1,29 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
-import { MapContainer, TileLayer, Polygon, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Polygon, Popup, useMap, Tooltip } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { validateCoords } from '../utils/timeUtils'
+import { RESTRICTED_ZONES } from '../data/zones'
 
-const RISK_COLORS = { HIGH: '#d32f2f', MEDIUM: '#f57c00', LOW: '#388e3c' }
-const RISK_GLOW = { HIGH: 'rgba(211, 47, 47, 0.4)', MEDIUM: 'rgba(245, 124, 0, 0.3)', LOW: 'rgba(56, 142, 60, 0.3)' }
-
-const ZONES = [
-  { name: 'Naval Exclusion Zone — Kochi', color: '#d32f2f', positions: [[9.5, 76.0], [9.5, 76.5], [10.3, 76.5], [10.3, 76.0]] },
-  { name: 'EEZ Fishing Restriction Zone', color: '#f57c00', positions: [[10.3, 78.8], [10.3, 79.8], [11.2, 79.8], [11.2, 78.8]] },
-  { name: 'Port Exclusion Zone — Chennai', color: '#1976d2', positions: [[12.8, 80.0], [12.8, 80.4], [13.2, 80.4], [13.2, 80.0]] },
-]
+const RISK_COLORS = { HIGH: '#ff2d55', MEDIUM: '#ffb830', LOW: '#00e676' }
+const RISK_GLOW = { HIGH: 'rgba(255, 45, 85, 0.4)', MEDIUM: 'rgba(255, 184, 48, 0.3)', LOW: 'rgba(0, 230, 118, 0.3)' }
 
 /* Build clean, professional CSS-animated DivIcon per ship */
 function makeShipIcon(ship) {
-  const color = RISK_COLORS[ship.risk]
-  const glow = RISK_GLOW[ship.risk]
-  const isHigh = ship.risk === 'HIGH'
+  const isViolation = ship.isViolation
+  const color = isViolation ? '#ff2d55' : RISK_COLORS[ship.risk]
+  const glow = isViolation ? 'rgba(255, 45, 85, 0.6)' : RISK_GLOW[ship.risk]
+  const isHigh = ship.risk === 'HIGH' || isViolation
   const isMed = ship.risk === 'MEDIUM'
-  const size = isHigh ? 16 : isMed ? 14 : 12
+  const size = isViolation ? 18 : isHigh ? 16 : isMed ? 14 : 12
 
   const pulseRings = isHigh ? `
     <div style="
       position:absolute;top:50%;left:50%;
-      width:${size * 2.5}px;height:${size * 2.5}px;
-      border-radius:50%;border:1px solid ${color};
+      width:${size * 2.8}px;height:${size * 2.8}px;
+      border-radius:50%;border:2px solid ${color};
       transform:translate(-50%,-50%);
-      animation:markerPulseClean 2s ease-out infinite;
+      animation:markerPulseClean ${isViolation ? '1s' : '2s'} ease-out infinite;
       opacity:0.6;
     "></div>
   ` : ''
@@ -38,8 +34,8 @@ function makeShipIcon(ship) {
       width:${size}px;height:${size}px;
       background:${color};
       transform:translate(-50%,-50%) rotate(45deg);
-      box-shadow:0 2px 4px rgba(0,0,0,0.3), 0 0 8px ${glow};
-      border: 1px solid #ffffff;
+      box-shadow:0 0 12px ${glow}, 0 0 20px ${glow}44;
+      border: 1.5px solid #ffffff;
     "></div>
   ` : `
     <div style="
@@ -55,7 +51,7 @@ function makeShipIcon(ship) {
 
   const html = `
     <style>
-      @keyframes markerPulseClean{0%{transform:translate(-50%,-50%) scale(0.8);opacity:0.8}100%{transform:translate(-50%,-50%) scale(2.0);opacity:0}}
+      @keyframes markerPulseClean{0%{transform:translate(-50%,-50%) scale(0.6);opacity:0.8}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
       .ship-tooltip {
         background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color);
         padding: 4px 8px; border-radius: 4px; font-family: var(--font-main); font-size: 11px; font-weight: 600;
@@ -257,15 +253,29 @@ export default function Map2D({ ships, onSelectShip, focusShip }) {
         )}
         
         {/* Restricted Zones */}
-        {ZONES.map((zone, i) => (
+        {RESTRICTED_ZONES.map((zone, i) => (
           <Polygon
-            key={i}
+            key={zone.id || i}
             positions={zone.positions}
-            pathOptions={{ color: zone.color, fillColor: zone.color, fillOpacity: 0.15, weight: 2, dashArray: '4,4' }}
+            pathOptions={{ 
+              color: zone.color, 
+              fillColor: zone.color, 
+              fillOpacity: 0.1, 
+              weight: 2.5, 
+              dashArray: '6,6',
+              lineCap: 'round'
+            }}
           >
+            <Tooltip permanent direction="center" className="zone-label-tooltip">
+              {zone.name}
+            </Tooltip>
             <Popup className="zenith-clean-popup">
-              <div style={{ background: 'var(--bg-card)', padding: '10px 14px', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'var(--font-main)', fontSize: '12px', fontWeight: 600, border: `1px solid ${zone.color}40`, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                <span style={{ color: zone.color, marginRight: '6px' }}>⚠</span> {zone.name}
+              <div style={{ background: 'var(--bg-card)', padding: '12px 16px', borderRadius: '8px', color: 'var(--text-primary)', fontFamily: 'var(--font-main)', fontSize: '12px', fontWeight: 600, border: `1px solid ${zone.color}60`, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
+                <div style={{ color: zone.color, marginBottom: '4px', fontSize: '10px', letterSpacing: '1px' }}>RESTRICTED AREA identified</div>
+                <div style={{ fontSize: '14px', marginBottom: '8px' }}>{zone.name}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 400, borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                  Unauthorized entry triggers automated high-risk maritime alert.
+                </div>
               </div>
             </Popup>
           </Polygon>
