@@ -7,32 +7,32 @@
 
 /* ── CSS Variables ── */
 :root {
-  --bg-primary:     #04080f;
-  --bg-secondary:   #060b18;
-  --bg-card:        #08111f;
-  --bg-card-hover:  #0d1a2e;
-  --border-color:   rgba(0, 212, 255, 0.11);
-  --border-bright:  rgba(0, 212, 255, 0.35);
+  --bg-primary:     #0c1017;
+  --bg-secondary:   #131821;
+  --bg-card:        #19202b;
+  --bg-card-hover:  #202836;
+  --border-color:   rgba(163, 184, 204, 0.12);
+  --border-bright:  rgba(163, 184, 204, 0.35);
 
-  --cyan:           #00d4ff;
-  --cyan-dim:       rgba(0, 212, 255, 0.15);
-  --cyan-glow:      rgba(0, 212, 255, 0.6);
+  --cyan:           #3b82f6;
+  --cyan-dim:       rgba(59, 130, 246, 0.15);
+  --cyan-glow:      rgba(59, 130, 246, 0.3);
 
-  --danger:         #ff2d55;
-  --danger-dim:     rgba(255, 45, 85, 0.15);
-  --danger-glow:    rgba(255, 45, 85, 0.5);
+  --danger:         #ef4444;
+  --danger-dim:     rgba(239, 68, 68, 0.15);
+  --danger-glow:    rgba(239, 68, 68, 0.3);
 
-  --warning:        #ffb830;
-  --warning-dim:    rgba(255, 184, 48, 0.15);
+  --warning:        #f59e0b;
+  --warning-dim:    rgba(245, 158, 11, 0.15);
 
-  --success:        #00e676;
-  --success-dim:    rgba(0, 230, 118, 0.15);
+  --success:        #10b981;
+  --success-dim:    rgba(16, 185, 129, 0.15);
 
-  --text-primary:   #e8f0fe;
-  --text-secondary: #7a95b8;
-  --text-dim:       #3d5478;
+  --text-primary:   #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-dim:       #64748b;
 
-  --font-main:      'Space Grotesk', sans-serif;
+  --font-main:      'Space Grotesk', -apple-system, sans-serif;
   --font-mono:      'JetBrains Mono', monospace;
 
   --panel-width:    340px;
@@ -44,34 +44,34 @@
 
 /* ── Light Theme Overrides ── */
 [data-theme="light"] {
-  --bg-primary:     #eef2f9;
-  --bg-secondary:   #e3eaf5;
+  --bg-primary:     #f1f5f9;
+  --bg-secondary:   #e2e8f0;
   --bg-card:        #ffffff;
-  --bg-card-hover:  #f0f5ff;
-  --border-color:   rgba(30, 90, 200, 0.14);
-  --border-bright:  rgba(0, 120, 200, 0.45);
+  --bg-card-hover:  #f8fafc;
+  --border-color:   rgba(15, 23, 42, 0.1);
+  --border-bright:  rgba(15, 23, 42, 0.3);
 
-  --cyan:           #0077cc;
-  --cyan-dim:       rgba(0, 119, 204, 0.14);
-  --cyan-glow:      rgba(0, 119, 204, 0.5);
+  --cyan:           #0284c7;
+  --cyan-dim:       rgba(2, 132, 199, 0.1);
+  --cyan-glow:      rgba(2, 132, 199, 0.3);
 
-  --danger:         #e0103a;
-  --danger-dim:     rgba(224, 16, 58, 0.12);
-  --danger-glow:    rgba(224, 16, 58, 0.4);
+  --danger:         #dc2626;
+  --danger-dim:     rgba(220, 38, 38, 0.1);
+  --danger-glow:    rgba(220, 38, 38, 0.3);
 
-  --warning:        #cc7a00;
-  --warning-dim:    rgba(204, 122, 0, 0.12);
+  --warning:        #d97706;
+  --warning-dim:    rgba(217, 119, 6, 0.1);
 
-  --success:        #008a44;
-  --success-dim:    rgba(0, 138, 68, 0.12);
+  --success:        #16a34a;
+  --success-dim:    rgba(22, 163, 74, 0.1);
 
-  --text-primary:   #0a1525;
-  --text-secondary: #3a5070;
-  --text-dim:       #7a90b0;
+  --text-primary:   #0f172a;
+  --text-secondary: #475569;
+  --text-dim:       #64748b;
 }
 
 [data-theme="light"] .leaflet-container {
-  background: #d8e4f0 !important;
+  background: #e2e8f0 !important;
 }
 
 /* ── Reset & Base ── */
@@ -194,10 +194,11 @@ html, body {
 
 /* ── Utility classes ── */
 .glass {
-  background: rgba(8, 17, 31, 0.88);
+  background: var(--bg-card);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-color);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
 
 .text-mono    { font-family: var(--font-mono); }

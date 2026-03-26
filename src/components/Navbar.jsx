@@ -68,15 +68,6 @@ const styles = {
     color: active ? 'var(--cyan)' : 'var(--text-secondary)',
     boxShadow: active ? '0 0 14px rgba(0,212,255,0.3)' : 'none',
   }),
-  learnBtn: {
-    padding: '5px 14px', borderRadius: '6px',
-    fontSize: '11px', fontWeight: 700, letterSpacing: '1px',
-    cursor: 'pointer', border: '1px solid rgba(0,212,255,0.2)',
-    fontFamily: 'var(--font-main)',
-    background: 'rgba(0,212,255,0.06)',
-    color: 'var(--text-secondary)',
-    transition: 'all 0.2s',
-  },
   timeStr: {
     color: 'var(--text-secondary)', fontSize: '10px', fontFamily: 'var(--font-mono)',
     background: 'rgba(0,212,255,0.05)', padding: '4px 10px', borderRadius: '4px',
@@ -84,7 +75,7 @@ const styles = {
   },
 }
 
-export default function Navbar({ viewMode, onToggleView, totalShips, highCount, alertCount, onLearnClick, theme, onToggleTheme }) {
+export default function Navbar({ viewMode, onToggleView, totalShips, highCount, alertCount, theme, onToggleTheme }) {
   const [time, setTime] = useState(new Date())
   const [spinning, setSpinning] = useState(false)
   useEffect(() => {
@@ -180,15 +171,6 @@ export default function Navbar({ viewMode, onToggleView, totalShips, highCount, 
           <span style={{ display: 'inline-block', animation: spinning ? 'iconSpin 0.4s ease' : 'none' }}>
             {theme === 'dark' ? '☀️' : '🌙'}
           </span>
-        </button>
-        {/* Learn button */}
-        <button
-          style={styles.learnBtn}
-          onClick={onLearnClick}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,212,255,0.14)'; e.currentTarget.style.color = 'var(--cyan)'; e.currentTarget.style.borderColor = 'rgba(0,212,255,0.4)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,212,255,0.06)'; e.currentTarget.style.color = 'var(--text-secondary)'; e.currentTarget.style.borderColor = 'rgba(0,212,255,0.2)' }}
-        >
-          📚 LEARN
         </button>
         {/* 2D / 3D toggle */}
         <div style={styles.toggle}>

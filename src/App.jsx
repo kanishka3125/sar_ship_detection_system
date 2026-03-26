@@ -6,7 +6,6 @@ import AlertsPanel      from './components/AlertsPanel.jsx'
 import ShipModal        from './components/ShipModal.jsx'
 import StatsBar         from './components/StatsBar.jsx'
 import OnboardingOverlay from './components/OnboardingOverlay.jsx'
-import LearnSection     from './components/LearnSection.jsx'
 
 import shipsData  from './data/ships.json'
 import alertsData from './data/alerts.json'
@@ -19,7 +18,6 @@ export default function App() {
   const [selectedShip,  setSelectedShip]  = useState(null)
   const [focusShip,     setFocusShip]     = useState(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [showLearn,     setShowLearn]     = useState(false)
   const [theme,         setTheme]         = useState(
     () => localStorage.getItem(THEME_KEY) || 'dark'
   )
@@ -76,7 +74,6 @@ export default function App() {
         totalShips={shipsData.length}
         highCount={highCount}
         alertCount={alertCount}
-        onLearnClick={() => setShowLearn(true)}
         theme={theme}
         onToggleTheme={handleToggleTheme}
       />
@@ -118,9 +115,6 @@ export default function App() {
 
       {/* Onboarding Overlay */}
       {showOnboarding && <OnboardingOverlay onDismiss={handleDismissOnboarding} />}
-
-      {/* Learn Section */}
-      {showLearn && <LearnSection onClose={() => setShowLearn(false)} />}
     </div>
   )
 }

@@ -18,33 +18,59 @@ function latLngToVec3(lat, lng, radius = 1.025) {
   ]
 }
 
-/* ── Earth with real texture ── */
+/* ── Realistic Earth with Satellite Textures & Clouds ── */
 function EarthMesh({ globeRef }) {
-  const [dayMap, bumpMap, specMap] = useTexture([
-    'https://unpkg.com/three-globe/example/img/earth-day.jpg',
-    'https://unpkg.com/three-globe/example/img/earth-topology.png',
-    'https://unpkg.com/three-globe/example/img/earth-water.png',
+  const [dayMap, bumpMap, specMap, skyMap] = useTexture([
+    '/models/earth_color_vibrant.jpg',
+    '/models/earth_topology_vibrant.png',
+    '/models/earth_water_vibrant.png',
+    '/models/night_sky.png'
   ])
 
-  useFrame((_, delta) => { if (globeRef.current) globeRef.current.rotation.y += delta * 0.08 })
+  // Enhance texture sharpness and color accuracy
+  useMemo(() => {
+    dayMap.colorSpace = THREE.SRGBColorSpace
+    skyMap.colorSpace = THREE.SRGBColorSpace
+    ;[dayMap, bumpMap, specMap].forEach(t => {
+      t.anisotropy = 16
+    })
+  }, [dayMap, bumpMap, specMap, skyMap])
+
+  useFrame((_, delta) => {
+    if (globeRef.current) globeRef.current.rotation.y += delta * 0.04
+  })
 
   return (
     <group ref={globeRef}>
+      {/* 1. Main Earth Sphere (Terrain + Oceans) */}
       <mesh>
-        <sphereGeometry args={[1, 72, 72]} />
-        <meshPhongMaterial map={dayMap} bumpMap={bumpMap} bumpScale={0.04} specularMap={specMap} specular={new THREE.Color('#226688')} shininess={12} />
+        <sphereGeometry args={[1, 128, 128]} />
+        <meshStandardMaterial
+          map={dayMap}
+          bumpMap={bumpMap}
+          bumpScale={0.02}
+          roughnessMap={specMap}
+          roughness={0.75}
+          metalness={0.1}
+        />
       </mesh>
-      <mesh>
-        <sphereGeometry args={[1.005, 32, 32]} />
-        <meshBasicMaterial color="#4488cc" transparent opacity={0.03} side={THREE.FrontSide} />
+
+      {/* 3. Milky Way Sky Background */}
+      <mesh scale={[100, 100, 100]}>
+        <sphereGeometry args={[1, 64, 64]} />
+        <meshBasicMaterial map={skyMap} side={THREE.BackSide} />
       </mesh>
+
+      {/* 4. Very tight Atmospheric Glow */}
       <mesh>
-        <sphereGeometry args={[1.08, 32, 32]} />
-        <meshBasicMaterial color="#1155bb" transparent opacity={0.07} side={THREE.BackSide} />
+        <sphereGeometry args={[1.002, 64, 64]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.06} side={THREE.FrontSide} blending={THREE.AdditiveBlending} />
       </mesh>
-      <mesh>
-        <sphereGeometry args={[1.015, 48, 48]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.05} side={THREE.FrontSide} />
+
+      {/* 5. Outer Atmospheric Halo */}
+      <mesh scale={[1.015, 1.015, 1.015]}>
+        <sphereGeometry args={[1, 64, 64]} />
+        <meshBasicMaterial color="#aabbff" transparent opacity={0.08} side={THREE.BackSide} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
     </group>
   )
@@ -167,12 +193,14 @@ function GlobeScene({ ships, onSelectShip }) {
 
   return (
     <>
-      <color attach="background" args={['#030610']} />
-      <ambientLight intensity={0.45} />
-      <directionalLight position={[5, 3, 5]}    intensity={2.1} color="#fff8f0" />
-      <directionalLight position={[-6, -2, -5]} intensity={0.16} color="#2244aa" />
+      <color attach="background" args={['#000000']} />
+      <ambientLight intensity={0.6} color="#ffffff" />
+      {/* Primary Sun Light for Dramatic Day/Night effect */}
+      <directionalLight position={[8, 4, 6]} intensity={3.0} color="#ffffff" />
+      {/* Soft fill light */}
+      <directionalLight position={[-10, -2, -6]} intensity={0.3} color="#6688aa" />
 
-      <Stars radius={90} depth={60} count={6000} factor={3} saturation={0.2} fade speed={0.4} />
+      {/* Replacing subtle stars with the massive skyMap sphere placed in EarthMesh */}
 
       <Suspense fallback={<EarthFallback globeRef={globeRef} />}>
         <EarthMesh globeRef={globeRef} />
@@ -184,14 +212,17 @@ function GlobeScene({ ships, onSelectShip }) {
       ))}
 
       <OrbitControls
+        makeDefault // Ensure it syncs optimally with the canvas
         enablePan={false}
-        minDistance={1.4}
-        maxDistance={5}
-        autoRotate
-        autoRotateSpeed={0.3}
-        enableDamping
-        dampingFactor={0.06}
-        rotateSpeed={0.5}
+        enableZoom={true}
+        minDistance={1.15}
+        maxDistance={4.5}
+        autoRotate={true}
+        autoRotateSpeed={0.2} // Slower, more majestic rotation
+        enableDamping={true}
+        dampingFactor={0.03} // Extremely smooth, continuous inertia
+        rotateSpeed={0.35} // Smooth, heavier drag feel
+        zoomSpeed={0.5} // Slows down scroll wheel stepping for a fluid zoom effect
       />
     </>
   )
@@ -229,8 +260,14 @@ export default function Globe3D({ ships, onSelectShip }) {
   return (
     <div style={{ width:'100%', height:'100%', position:'relative' }}>
       <Canvas
-        camera={{ position:[0, 1.4, 2.8], fov:44 }}
-        gl={{ antialias:true, alpha:false, powerPreference:'high-performance' }}
+        camera={{ position:[0, 1.2, 3.2], fov: 35 }} // Narrower FOV for cinematic telephoto Google Earth feel
+        gl={{ 
+          antialias: true, 
+          alpha: false, 
+          powerPreference: 'high-performance',
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.1
+        }}
       >
         <Suspense fallback={null}>
           <GlobeScene ships={ships} onSelectShip={onSelectShip} />

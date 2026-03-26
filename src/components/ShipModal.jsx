@@ -1,11 +1,12 @@
 import { useEffect, useRef, Suspense, Component } from 'react'
 import { formatLocalTime } from '../utils/timeUtils'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
+import * as THREE from 'three'
+import { OrbitControls, Float } from '@react-three/drei'
 import ShipModel from './ShipModel.jsx'
 
 const RISK_COLORS = { HIGH: '#ff2d55', MEDIUM: '#ffb830', LOW: '#00e676' }
-const AIS_COLORS  = { ABSENT: '#ff2d55', SPOOFED: '#ffb830', PRESENT: '#00e676' }
+const AIS_COLORS = { ABSENT: '#ff2d55', SPOOFED: '#ffb830', PRESENT: '#00e676' }
 
 /* ── Error boundary: bad GLB load never crashes the whole modal ── */
 class CanvasErrorBoundary extends Component {
@@ -74,7 +75,7 @@ function Field({ label, value, color, mono }) {
 
 /* ── Detection confidence bar ── */
 function ConfidenceBar({ value }) {
-  const pct   = Math.round(value * 100)
+  const pct = Math.round(value * 100)
   const color = pct >= 85 ? '#ff2d55' : pct >= 70 ? '#ffb830' : '#00e676'
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -108,8 +109,8 @@ export default function ShipModal({ ship, onClose }) {
 
   if (!ship) return null
 
-  const color     = RISK_COLORS[ship.risk]
-  const aisColor  = AIS_COLORS[ship.ais_status]
+  const color = RISK_COLORS[ship.risk]
+  const aisColor = AIS_COLORS[ship.ais_status]
   const modelType = getModelType(ship)
 
   return (
@@ -135,10 +136,10 @@ export default function ShipModal({ ship, onClose }) {
         animation: 'modalOpen 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
       }}>
 
-        {/* ── Left: 3D Canvas ── */}
+        {/* ── Left: 3D Canvas (60%) ── */}
         <div style={{
-          flex: '0 0 50%',
-          background: `radial-gradient(ellipse at 50% 30%, ${color}12 0%, var(--bg-primary) 65%)`,
+          flex: '0 0 60%',
+          background: `radial-gradient(ellipse at 50% 50%, rgba(4,10,24,0.3) 0%, rgba(2,5,10,0.95) 100%)`,
           borderRight: `1px solid ${color}22`,
           display: 'flex', flexDirection: 'column',
         }}>
@@ -169,35 +170,50 @@ export default function ShipModal({ ship, onClose }) {
             >✕</button>
           </div>
 
-          {/* Three.js Canvas — GLB model */}
-          <div style={{ flex: 1, position: 'relative' }}>
-            <Canvas
-              camera={{ position: [0, 2, 6], fov: 45 }}
-              gl={{ antialias: true }}
-            >
-              <color attach="background" args={['#04080f']} />
-              {/* Lighting */}
-              <ambientLight intensity={0.6} />
-              <directionalLight position={[8, 10, 6]}   intensity={2.0} color="#fff8f0" castShadow />
-              <directionalLight position={[-6, 4, -4]}  intensity={0.6} color="#aabbcc" />
-              <directionalLight position={[0, -4, -8]}  intensity={0.3} color="#334466" />
-              <pointLight       position={[0, -3, 0]}   intensity={0.4} color="#1144aa" />
+          {/* Three.js Canvas — 3D Ship Viewer */}
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+            <CanvasErrorBoundary>
+              <Canvas
+                camera={{ position: [2.5, 2.5, 4.5], fov: 38 }}
+                gl={{ antialias: true, alpha: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
+                shadows
+              >
+                <color attach="background" args={['#040a18']} />
+                <fog attach="fog" args={['#040a18', 6, 18]} />
 
-              {/* GLB ship model — stable via Suspense + ShipModel's internal useMemo */}
-              <Suspense fallback={<LoadingSpinner />}>
-                <ShipModel type={modelType} />
-              </Suspense>
+                {/* Lighting rig — warm sun + cool fill + underwater */}
+                <ambientLight intensity={0.4} color="#b0c4de" />
+                <directionalLight
+                  position={[8, 12, 6]} intensity={2.2} color="#ffeedd"
+                  castShadow shadow-mapSize={2048}
+                  shadow-camera-near={0.5} shadow-camera-far={30}
+                  shadow-camera-left={-5} shadow-camera-right={5}
+                  shadow-camera-top={5} shadow-camera-bottom={-5}
+                />
+                <directionalLight position={[-6, 4, -8]} intensity={0.5} color="#6688cc" />
+                <pointLight position={[0, -3, 0]} intensity={0.2} color="#112244" distance={8} />
+                <hemisphereLight skyColor="#334466" groundColor="#0a1428" intensity={0.3} />
 
-              <OrbitControls
-                enablePan={false}
-                minDistance={3}
-                maxDistance={18}
-                enableDamping
-                dampingFactor={0.05}
-                autoRotate
-                autoRotateSpeed={1.5}
-              />
-            </Canvas>
+                {/* Ship model with floating animation */}
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Float speed={1.2} rotationIntensity={0.08} floatIntensity={0.3} floatingRange={[-0.06, 0.06]}>
+                    <ShipModel type={modelType} risk={ship.risk} ship={ship} />
+                  </Float>
+                </Suspense>
+
+                <OrbitControls
+                  enablePan={false}
+                  minDistance={2.5}
+                  maxDistance={9}
+                  enableDamping
+                  dampingFactor={0.04}
+                  autoRotate
+                  autoRotateSpeed={0.4}
+                  maxPolarAngle={Math.PI / 1.9}
+                  minPolarAngle={Math.PI / 6}
+                />
+              </Canvas>
+            </CanvasErrorBoundary>
             <div style={{
               position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
               fontSize: 10, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)',
@@ -210,8 +226,8 @@ export default function ShipModal({ ship, onClose }) {
           </div>
         </div>
 
-        {/* ── Right: Intelligence Profile ── */}
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        {/* ── Right: Intelligence Profile (40%) ── */}
+        <div style={{ flex: '0 0 40%', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
           {/* Header */}
           <div style={{ padding: '18px 22px', borderBottom: `1px solid ${color}22`, background: `${color}08`, flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
@@ -236,20 +252,25 @@ export default function ShipModal({ ship, onClose }) {
 
           {/* Fields grid */}
           <div style={{ padding: '18px 22px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, flex: 1, background: 'var(--bg-card)' }}>
-            <Field label="VESSEL TYPE"  value={ship.vessel_type} />
-            <Field label="FLAG STATE"   value={ship.flag} />
-            <Field label="LENGTH"       value={`${ship.length_m} m`} mono />
-            <Field label="SPEED"        value={`${ship.speed_knots} kts`} mono />
-            <Field label="HEADING"      value={`${ship.heading}°`} mono />
-            <Field label="AIS STATUS"   value={ship.ais_status} color={aisColor} mono />
-            <Field label="COORDINATES"  value={`${ship.lat.toFixed(4)}°N  ${ship.lng.toFixed(4)}°E`} mono />
-            <Field label="LAST SEEN"    value={formatLocalTime(ship.last_seen)} mono />
+            <Field label="VESSEL TYPE" value={ship.vessel_type} />
+            <Field label="FLAG STATE" value={ship.flag} />
+            <Field label="LENGTH" value={`${ship.length_m} m`} mono />
+            <Field label="SPEED" value={`${ship.speed_knots} kts`} mono />
+            <Field label="HEADING" value={`${ship.heading}°`} mono />
+            <Field label="AIS STATUS" value={ship.ais_status} color={aisColor} mono />
+            <Field label="COORDINATES" value={`${ship.lat.toFixed(4)}°N  ${ship.lng.toFixed(4)}°E`} mono />
+            <Field label="LAST SEEN" value={formatLocalTime(ship.last_seen)} mono />
           </div>
 
           {/* Intel assessment */}
-          <div style={{ margin: '0 22px 14px', background: `${color}0c`, border: `1px solid ${color}30`, borderRadius: 8, padding: 13 }}>
-            <div style={{ fontSize: 9, letterSpacing: '1.5px', color, fontWeight: 700, marginBottom: 6 }}>⚠ INTELLIGENCE ASSESSMENT</div>
-            <div style={{ fontSize: 12, color: 'var(--text-primary)', lineHeight: 1.6 }}>{ship.alert_reason}</div>
+          <div style={{ margin: '0 22px 16px', background: `${color}08`, border: `1px solid ${color}30`, borderRadius: 8, padding: 16 }}>
+            <div style={{ fontSize: 10, letterSpacing: '1.5px', color, fontWeight: 700, marginBottom: 8 }}>⚠ INTELLIGENCE ASSESSMENT</div>
+            <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6 }}>
+              {ship.ais_status === 'ABSENT' ? 'No AIS detected — potential dark vessel. Evasive maneuvers probable.' :
+                ship.ais_status === 'SPOOFED' ? 'AIS transmission mismatch — significant spoofing probability detected. Proceed with caution.' :
+                  ship.risk === 'HIGH' ? 'AIS verified — anomalous route patterns flagged. Intercept highly recommended.' :
+                    'AIS verified — normal route and predictable navigation patterns recognized.'}
+            </div>
           </div>
 
           {/* Confidence bar */}
