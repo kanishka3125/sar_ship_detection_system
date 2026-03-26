@@ -1,17 +1,17 @@
 /* ========================================
    ZENITH — Global CSS
-   Dark Military-Grade Design System
+   Dark Military-Grade Design System v2
    ======================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ── CSS Variables ── */
 :root {
-  --bg-primary:     #060b18;
-  --bg-secondary:   #0a1220;
-  --bg-card:        #0d1829;
-  --bg-card-hover:  #111f35;
-  --border-color:   rgba(0, 212, 255, 0.12);
+  --bg-primary:     #04080f;
+  --bg-secondary:   #060b18;
+  --bg-card:        #08111f;
+  --bg-card-hover:  #0d1a2e;
+  --border-color:   rgba(0, 212, 255, 0.11);
   --border-bright:  rgba(0, 212, 255, 0.35);
 
   --cyan:           #00d4ff;
@@ -40,6 +40,38 @@
   --statsbar-height:52px;
   --radius:         8px;
   --radius-sm:      5px;
+}
+
+/* ── Light Theme Overrides ── */
+[data-theme="light"] {
+  --bg-primary:     #eef2f9;
+  --bg-secondary:   #e3eaf5;
+  --bg-card:        #ffffff;
+  --bg-card-hover:  #f0f5ff;
+  --border-color:   rgba(30, 90, 200, 0.14);
+  --border-bright:  rgba(0, 120, 200, 0.45);
+
+  --cyan:           #0077cc;
+  --cyan-dim:       rgba(0, 119, 204, 0.14);
+  --cyan-glow:      rgba(0, 119, 204, 0.5);
+
+  --danger:         #e0103a;
+  --danger-dim:     rgba(224, 16, 58, 0.12);
+  --danger-glow:    rgba(224, 16, 58, 0.4);
+
+  --warning:        #cc7a00;
+  --warning-dim:    rgba(204, 122, 0, 0.12);
+
+  --success:        #008a44;
+  --success-dim:    rgba(0, 138, 68, 0.12);
+
+  --text-primary:   #0a1525;
+  --text-secondary: #3a5070;
+  --text-dim:       #7a90b0;
+}
+
+[data-theme="light"] .leaflet-container {
+  background: #d8e4f0 !important;
 }
 
 /* ── Reset & Base ── */
@@ -77,7 +109,7 @@ html, body {
 
 @keyframes live-blink {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.3; }
+  50%       { opacity: 0.28; }
 }
 
 @keyframes scanline {
@@ -117,34 +149,44 @@ html, body {
   100% { opacity: 0; transform: translateY(100%); }
 }
 
-/* ── Leaflet overrides ── */
-.leaflet-container {
-  background: #060b18 !important;
+/* Radar / spinning sweep */
+@keyframes radarSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
+
+/* Logo shimmer */
+@keyframes shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Danger pulse for critical count badge */
+@keyframes danger-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,45,85,0); }
+  50%       { box-shadow: 0 0 8px 3px rgba(255,45,85,0.35); }
+}
+
+/* ── Leaflet overrides ── */
+.leaflet-container { background: #04080f !important; }
 .leaflet-control-zoom a {
   background: var(--bg-card) !important;
   color: var(--cyan) !important;
   border-color: var(--border-color) !important;
 }
-.leaflet-control-zoom a:hover {
-  background: var(--bg-card-hover) !important;
-}
+.leaflet-control-zoom a:hover { background: var(--bg-card-hover) !important; }
 .leaflet-control-attribution {
-  background: rgba(6, 11, 24, 0.8) !important;
+  background: rgba(4, 8, 15, 0.82) !important;
   color: var(--text-dim) !important;
 }
 .leaflet-control-attribution a { color: var(--text-secondary) !important; }
 
 /* ── Pulse marker styles ── */
-.pulse-marker-high {
-  position: relative;
-}
+.pulse-marker-high { position: relative; }
 .pulse-marker-high::after {
   content: '';
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 16px; height: 16px;
-  border-radius: 50%;
+  position: absolute; top: 50%; left: 50%;
+  width: 16px; height: 16px; border-radius: 50%;
   background: var(--danger);
   transform: translate(-50%, -50%);
   animation: pulse-ring 1.6s ease-out infinite;
@@ -152,15 +194,20 @@ html, body {
 
 /* ── Utility classes ── */
 .glass {
-  background: rgba(13, 24, 41, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(8, 17, 31, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-color);
 }
 
-.text-mono { font-family: var(--font-mono); }
-.text-cyan  { color: var(--cyan); }
-.text-danger { color: var(--danger); }
+.text-mono    { font-family: var(--font-mono); }
+.text-cyan    { color: var(--cyan); }
+.text-danger  { color: var(--danger); }
 .text-warning { color: var(--warning); }
 .text-success { color: var(--success); }
-.text-dim  { color: var(--text-secondary); }
+.text-dim     { color: var(--text-secondary); }
+
+@keyframes iconSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
