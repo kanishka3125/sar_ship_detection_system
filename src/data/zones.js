@@ -2,11 +2,18 @@
  * RESTRICTED_ZONES
  * Defines maritime zones for geo-fencing detection.
  * Positions are [lat, lng] polygons.
+ *
+ * labelShort    → compact label shown by default
+ * labelDirection → Leaflet Tooltip direction for offset
+ * labelOffset   → [x, y] pixel offset to stagger overlapping labels
  */
 export const RESTRICTED_ZONES = [
   {
     id: 'ZONE-KCH-01',
     name: 'Naval Exclusion Zone — Kochi',
+    labelShort: 'Kochi Zone',
+    labelDirection: 'left',
+    labelOffset: [-12, 0],
     type: 'RESTRICTED',
     color: '#ff2d55',
     positions: [
@@ -16,6 +23,9 @@ export const RESTRICTED_ZONES = [
   {
     id: 'ZONE-EEZ-02',
     name: 'EEZ Fishing Restriction Zone',
+    labelShort: 'EEZ Zone',
+    labelDirection: 'top',
+    labelOffset: [0, -12],
     type: 'EEZ_BOUNDARY',
     color: '#ffb830',
     positions: [
@@ -25,6 +35,9 @@ export const RESTRICTED_ZONES = [
   {
     id: 'ZONE-CHN-03',
     name: 'Port Exclusion Zone — Chennai',
+    labelShort: 'Chennai Zone',
+    labelDirection: 'right',
+    labelOffset: [12, 0],
     type: 'RESTRICTED',
     color: '#ff2d55',
     positions: [
@@ -34,6 +47,9 @@ export const RESTRICTED_ZONES = [
   {
     id: 'ZONE-MSR-04',
     name: 'MSR Deep Water Operations',
+    labelShort: 'MSR Zone',
+    labelDirection: 'bottom',
+    labelOffset: [0, 12],
     type: 'MILITARY',
     color: '#00d4ff',
     positions: [

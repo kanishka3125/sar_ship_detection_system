@@ -21,6 +21,7 @@ export default function App() {
   const [selectedShip,  setSelectedShip]  = useState(null)
   const [focusShip,     setFocusShip]     = useState(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
+  const [isPanelOpen,   setIsPanelOpen]   = useState(false)
   const [theme,         setTheme]         = useState(
     () => localStorage.getItem(THEME_KEY) || 'light'
   )
@@ -226,6 +227,8 @@ export default function App() {
           >
             <Globe3D 
               ships={processedShips} 
+              alerts={mergedAlerts}
+              clusters={clusters}
               onSelectShip={handleSelectShip} 
               environment={environment}
               viewState={viewState}
@@ -234,10 +237,62 @@ export default function App() {
             />
           </div>
 
-        </div>
+          {/* ── Alerts Panel (overlay, slides in from right) ── */}
+          <AlertsPanel
+            alerts={mergedAlerts}
+            onAlertClick={handleAlertClick}
+            isOpen={isPanelOpen}
+            onClose={() => setIsPanelOpen(false)}
+          />
 
-        {/* Alerts Panel */}
-        <AlertsPanel alerts={mergedAlerts} onAlertClick={handleAlertClick} />
+          {/* ── Panel Toggle Button (right edge) ── */}
+          <button
+            onClick={() => setIsPanelOpen(prev => !prev)}
+            title={isPanelOpen ? 'Close Intelligence Panel' : 'Open Intelligence Panel'}
+            style={{
+              position: 'absolute',
+              right: isPanelOpen ? 'var(--panel-width)' : '0',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              transition: 'right 0.4s ease-in-out',
+              zIndex: 60,
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              borderRight: isPanelOpen ? '1px solid var(--border-color)' : 'none',
+              borderRadius: '6px 0 0 6px',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              width: '22px',
+              padding: '18px 0',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              boxShadow: '-3px 0 12px rgba(0,0,0,0.25)',
+              backdropFilter: 'blur(4px)',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-secondary)'}
+          >
+            {/* Chevron arrow — rotates when open */}
+            <span style={{
+              fontSize: '14px', lineHeight: 1, fontFamily: 'var(--font-mono)',
+              display: 'block',
+              transform: isPanelOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+              transition: 'transform 0.4s ease-in-out',
+            }}>›</span>
+            {/* Alert count badge */}
+            {!isPanelOpen && mergedAlerts.length > 0 && (
+              <span style={{
+                fontSize: '9px', fontWeight: 700, color: 'var(--danger)',
+                fontFamily: 'var(--font-mono)', lineHeight: 1,
+                writingMode: 'vertical-rl',
+                letterSpacing: '1px',
+              }}>{mergedAlerts.length}</span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Stats Bar */}

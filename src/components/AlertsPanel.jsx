@@ -6,7 +6,7 @@ const TYPE_ICONS   = { DARK_VESSEL: '🚫', AIS_SPOOF: '📡', ZONE_VIOLATION: '
 const TYPE_LABELS  = { DARK_VESSEL: 'DARK VESSEL', AIS_SPOOF: 'AIS SPOOF', ZONE_VIOLATION: 'ZONE VIOLATION' }
 const TYPE_COLORS  = { DARK_VESSEL: 'var(--accent)', AIS_SPOOF: 'var(--accent)', ZONE_VIOLATION: 'var(--accent)' }
 
-export default function AlertsPanel({ alerts, onAlertClick }) {
+export default function AlertsPanel({ alerts, onAlertClick, isOpen, onClose }) {
   const sorted = useMemo(() => {
     const order = { HIGH: 0, MEDIUM: 1, LOW: 2 }
     return [...alerts].sort((a, b) => order[a.severity] - order[b.severity])
@@ -16,13 +16,19 @@ export default function AlertsPanel({ alerts, onAlertClick }) {
 
   return (
     <div style={{
-      width: 'var(--panel-width)', height: '100%',
+      position: 'absolute',
+      top: 0, right: 0, bottom: 0,
+      width: 'clamp(300px, var(--panel-width), 100vw)',
       background: 'var(--bg-secondary)',
       borderLeft: '1px solid var(--border-color)',
       display: 'flex', flexDirection: 'column',
-      flexShrink: 0, zIndex: 10,
+      flexShrink: 0, zIndex: 50,
       fontFamily: 'var(--font-main)',
-      boxShadow: '-4px 0 24px rgba(0,0,0,0.2)',
+      boxShadow: '-6px 0 28px rgba(0,0,0,0.35)',
+      backdropFilter: 'blur(4px)',
+      transform: isOpen ? 'translateX(0%)' : 'translateX(100%)',
+      transition: 'transform 0.4s ease-in-out',
+      willChange: 'transform',
     }}>
       {/* Panel Header */}
       <div style={{
@@ -36,13 +42,30 @@ export default function AlertsPanel({ alerts, onAlertClick }) {
           }}>
             INTELLIGENCE ALERTS
           </div>
-          <div style={{
-            background: 'var(--bg-primary)', color: 'var(--text-primary)',
-            fontSize: '11px', fontWeight: 600, padding: '3px 8px',
-            borderRadius: '4px', fontFamily: 'var(--font-mono)',
-            border: '1px solid var(--border-color)',
-          }}>
-            {sorted.length} LIVE
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              background: 'var(--bg-primary)', color: 'var(--text-primary)',
+              fontSize: '11px', fontWeight: 600, padding: '3px 8px',
+              borderRadius: '4px', fontFamily: 'var(--font-mono)',
+              border: '1px solid var(--border-color)',
+            }}>
+              {sorted.length} LIVE
+            </div>
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              title="Close panel"
+              style={{
+                background: 'transparent', border: '1px solid var(--border-color)',
+                color: 'var(--text-secondary)', cursor: 'pointer',
+                width: '26px', height: '26px', borderRadius: '4px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '14px', lineHeight: 1, transition: 'all 0.2s',
+                fontFamily: 'var(--font-mono)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-card-hover)'; e.currentTarget.style.color = 'var(--text-primary)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+            >›</button>
           </div>
         </div>
         <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>

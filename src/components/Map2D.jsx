@@ -109,7 +109,7 @@ function InnerMap({ ships, onSelectShip, focusShip, environment, visible }) {
 
       const popupContent = document.createElement('div')
       popupContent.style.cssText = 'font-family:var(--font-main);min-width:220px;padding:4px;'
-      
+
       const weatherInfo = ship.env ? `
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-color);font-size:10px;color:var(--text-secondary);">
           <span>${ship.env.icon} ${ship.env.condition}</span>
@@ -149,7 +149,7 @@ function InnerMap({ ships, onSelectShip, focusShip, environment, visible }) {
       popupContent.querySelector('div').appendChild(btn)
 
       marker.bindPopup(L.popup({ maxWidth: 280, className: 'zenith-clean-popup', closeButton: false }).setContent(popupContent))
-      
+
       // Add hover tooltip
       marker.bindTooltip(`<b>${ship.vessel_name}</b><br>${ship.vessel_type}`, {
         className: 'ship-tooltip', direction: 'top', offset: [0, -10]
@@ -190,9 +190,9 @@ function MapEvents({ onViewChange, viewState }) {
 export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip, focusShip, environment, viewState, onViewChange, visible, theme = 'dark' }) {
   const [mapStyle, setMapStyle] = useState('map') // 'map' or 'satellite'
   const [expandedClusterId, setExpandedClusterId] = useState(null)
-  
-  const darkAlerts   = useMemo(() => (alerts || []).filter(a => a.type === "DARK_VESSEL"), [alerts])
-  const spoofAlerts  = useMemo(() => (alerts || []).filter(a => a.type === "AIS_SPOOFING"), [alerts])
+
+  const darkAlerts = useMemo(() => (alerts || []).filter(a => a.type === "DARK_VESSEL"), [alerts])
+  const spoofAlerts = useMemo(() => (alerts || []).filter(a => a.type === "AIS_SPOOFING"), [alerts])
   const loiterAlerts = useMemo(() => (alerts || []).filter(a => a.type === "LOITERING"), [alerts])
 
   const darkIcon = L.divIcon({
@@ -243,21 +243,52 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
         }
         .zenith-clean-popup .leaflet-popup-content { margin: 0 !important; }
         .zenith-clean-popup .leaflet-popup-tip-container { display: none; }
-        
+
         /* Clean up zoom controls */
         .leaflet-control-zoom { border: none !important; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important; border-radius: 8px !important; overflow: hidden; }
         .leaflet-control-zoom a { background: var(--bg-card) !important; color: var(--text-primary) !important; border-color: var(--border-color) !important; width: 34px !important; height: 34px !important; line-height: 34px !important; }
         .leaflet-control-zoom a:hover { background: var(--bg-secondary) !important; }
+
+        /* Zone labels — compact by default, hover expands */
+        .zone-label-tooltip {
+          background: rgba(10, 14, 26, 0.72) !important;
+          border: 1px solid rgba(255,255,255,0.12) !important;
+          border-radius: 4px !important;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+          padding: 3px 8px !important;
+          font-family: var(--font-mono) !important;
+          font-size: 9px !important;
+          font-weight: 600 !important;
+          letter-spacing: 0.8px !important;
+          color: rgba(255,255,255,0.75) !important;
+          white-space: nowrap !important;
+          pointer-events: auto !important;
+          cursor: default;
+          max-width: 90px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          transition: max-width 0.25s ease, background 0.2s;
+        }
+        .zone-label-tooltip:hover {
+          max-width: 240px;
+          background: rgba(10, 14, 26, 0.92) !important;
+          color: #fff !important;
+          border-color: rgba(255,255,255,0.25) !important;
+        }
+        .leaflet-tooltip-left.zone-label-tooltip::before  { border-left-color:  rgba(255,255,255,0.12) !important; }
+        .leaflet-tooltip-right.zone-label-tooltip::before { border-right-color: rgba(255,255,255,0.12) !important; }
+        .leaflet-tooltip-top.zone-label-tooltip::before   { border-top-color:   rgba(255,255,255,0.12) !important; }
+        .leaflet-tooltip-bottom.zone-label-tooltip::before{ border-bottom-color:rgba(255,255,255,0.12) !important; }
       `}</style>
 
       {/* Map Style Toggle */}
       <div style={{
-        position: 'absolute', top: '16px', left: '16px', zIndex: 1000,
+        position: 'absolute', top: '16px', right: '16px', zIndex: 1000,
         display: 'flex', gap: '8px', background: 'var(--bg-overlay)',
         padding: '4px', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)',
         backdropFilter: 'blur(8px)', boxShadow: 'var(--shadow)',
       }}>
-        <button 
+        <button
           onClick={() => setMapStyle('map')}
           title="Street Map"
           style={{
@@ -265,22 +296,22 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
             fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px',
             cursor: 'pointer', border: 'none', transition: 'all 0.2s',
             fontFamily: 'var(--font-main)',
-            background: mapStyle === 'sat' ? 'var(--accent)' : 'transparent',
-            color: mapStyle === 'sat' ? 'var(--bg-primary)' : 'var(--text-secondary)',
+            background: mapStyle === 'map' ? 'var(--accent)' : 'transparent',
+            color: mapStyle === 'map' ? 'var(--bg-primary)' : 'var(--text-secondary)',
           }}
-        >🗺️</button>
-        <button 
+        >Map</button>
+        <button
           onClick={() => setMapStyle('satellite')}
           title="Satellite View"
           style={{
-            width: '40px', height: '40px', borderRadius: '10px', border: 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: mapStyle === 'satellite' ? 'var(--cyan)' : 'transparent',
-            color: mapStyle === 'satellite' ? '#fff' : 'var(--text-secondary)',
-            cursor: 'pointer', fontSize: '20px', transition: 'all 0.2s',
-            boxShadow: mapStyle === 'satellite' ? '0 4px 12px var(--cyan-dim)' : 'none'
+            padding: '6px 14px', borderRadius: 'var(--radius-sm)',
+            fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px',
+            cursor: 'pointer', border: 'none', transition: 'all 0.2s',
+            fontFamily: 'var(--font-main)',
+            background: mapStyle === 'satellite' ? 'var(--accent)' : 'transparent',
+            color: mapStyle === 'satellite' ? 'var(--bg-primary)' : 'var(--text-secondary)',
           }}
-        >🛰️</button>
+        >Satellite</button>
       </div>
 
 
@@ -322,22 +353,28 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
             className="map-tiles-transition"
           />
         )}
-        
+
         {/* Restricted Zones */}
         {RESTRICTED_ZONES.map((zone, i) => (
           <Polygon
             key={zone.id || i}
             positions={zone.positions}
-            pathOptions={{ 
-              color: zone.color, 
-              fillColor: zone.color, 
-              fillOpacity: 0.05, 
-              weight: 1.5, 
-              lineCap: 'round'
+            pathOptions={{
+              color: zone.color,
+              fillColor: zone.color,
+              fillOpacity: 0.03,
+              weight: 1,
+              lineCap: 'round',
+              dashArray: '4 4',
             }}
           >
-            <Tooltip permanent direction="center" className="zone-label-tooltip">
-              {zone.name}
+            <Tooltip
+              permanent
+              direction={zone.labelDirection || 'center'}
+              offset={zone.labelOffset || [0, 0]}
+              className="zone-label-tooltip"
+            >
+              {zone.labelShort || zone.name}
             </Tooltip>
             <Popup className="zenith-clean-popup">
               <div style={{ background: 'var(--bg-card)', padding: '12px 16px', borderRadius: '8px', color: 'var(--text-primary)', fontFamily: 'var(--font-main)', fontSize: '12px', fontWeight: 600, border: `1px solid ${zone.color}60`, boxShadow: '0 8px 24px rgba(0,0,0,0.2)' }}>
@@ -356,9 +393,9 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
 
         {/* Dark Vessel Alerts Markers */}
         {darkAlerts.map((alert, idx) => (
-          <Marker 
-            key={`dark-alt-${idx}`} 
-            position={[alert.lat, alert.lng]} 
+          <Marker
+            key={`dark-alt-${idx}`}
+            position={[alert.lat, alert.lng]}
             icon={darkIcon}
             eventHandlers={{
               click: () => {
@@ -372,8 +409,8 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
             </Tooltip>
             <Popup>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-                <b style={{ color: '#ff2d55' }}>DARK VESSEL DETECTED</b><br/>
-                ID: {alert.vessel_id || alert.alert_id}<br/>
+                <b style={{ color: '#ff2d55' }}>DARK VESSEL DETECTED</b><br />
+                ID: {alert.vessel_id || alert.alert_id}<br />
                 {alert.message}
               </div>
             </Popup>
@@ -402,9 +439,9 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
 
         {/* Loitering Alerts (Amber + Clock) */}
         {loiterAlerts.map((alert, idx) => (
-          <Marker 
-            key={`loiter-alt-${idx}`} 
-            position={[alert.lat, alert.lng]} 
+          <Marker
+            key={`loiter-alt-${idx}`}
+            position={[alert.lat, alert.lng]}
             icon={loiterIcon}
             eventHandlers={{
               click: () => {
@@ -418,8 +455,8 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
             </Tooltip>
             <Popup>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
-                <b style={{ color: '#ffb830' }}>LOITERING DETECTED</b><br/>
-                ID: {alert.vessel_id}<br/>
+                <b style={{ color: '#ffb830' }}>LOITERING DETECTED</b><br />
+                ID: {alert.vessel_id}<br />
                 {alert.message}
               </div>
             </Popup>
@@ -457,7 +494,7 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
               >
                 <Tooltip direction="top">Suspicious Vessel Grouping ({cluster.vessel_count} ships)</Tooltip>
               </Circle>
-              
+
               {/* Cluster Count Label */}
               <Marker position={cluster.center} icon={labelIcon} interactive={false} />
 

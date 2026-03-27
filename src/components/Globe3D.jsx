@@ -175,13 +175,86 @@ function ShipMarker({ ship, onSelect, environment }) {
   )
 }
 
+/* ── 3D Intelligence Cluster Marker ── */
+function ClusterMarker({ cluster, isExpanded, onToggleExpanded }) {
+  const ref = useRef()
+  const ringRef = useRef()
+  const [hovered, setHovered] = useState(false)
+
+  // 1:1 Mapping: Pre-calculate stable position once
+  const pos = useMemo(() => latLngToVec3(cluster.center[0], cluster.center[1]), [cluster.center])
+
+  // Scale base radius by vessel count
+  const baseSize = 0.008 + (cluster.vessel_count * 0.002)
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime()
+    if (ref.current) {
+      ref.current.scale.setScalar(1 + Math.sin(t * 2) * 0.1) // Gentle pulse
+    }
+    if (ringRef.current) {
+      const phase = (t * 1.5) % 1
+      ringRef.current.scale.setScalar(1 + phase * (isExpanded ? 3.5 : 2.5))
+      ringRef.current.material.opacity = (isExpanded ? 0.6 : 0.4) * (1 - phase)
+    }
+  })
+
+  return (
+    <group position={pos} onClick={(e) => { e.stopPropagation(); onToggleExpanded() }}>
+      {/* Base Cluster Core */}
+      <mesh ref={ref} onPointerOver={() => setHovered(true)} onPointerOut={() => setHovered(false)}>
+        <sphereGeometry args={[baseSize, 16, 16]} />
+        <meshStandardMaterial color="orange" emissive="orange" emissiveIntensity={hovered ? 2.5 : 1.2} toneMapped={false} />
+      </mesh>
+
+      {/* Pulsing Radar Ring */}
+      <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[baseSize * 1.5, baseSize * 2.5, 32]} />
+        <meshBasicMaterial color="orange" transparent opacity={0.4} side={THREE.DoubleSide} toneMapped={false} />
+      </mesh>
+
+      {/* Cluster Label Overlay */}
+      <Html distanceFactor={4} style={{ pointerEvents: 'none', transform: 'translate(-50%, -150%)' }}>
+        <div style={{
+          background: 'rgba(255, 165, 0, 0.9)', 
+          color: '#000', 
+          fontWeight: 800, 
+          borderRadius: '50%',
+          width: '24px', height: '24px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '12px',
+          boxShadow: '0 4px 12px rgba(255,165,0,0.4)'
+        }}>
+          {cluster.vessel_count}
+        </div>
+      </Html>
+
+      {/* Drill-Down Ships if Expanded */}
+      {isExpanded && cluster.detections && cluster.detections.map((det, idx) => {
+        const detPos = latLngToVec3(det[0], det[1], 1.002) // Slightly above surface, local to cluster
+        // To render drilldowns properly relative to the cluster's local position, 
+        // we subtract the cluster center pos so they appear around the group origin.
+        const localPos = new THREE.Vector3().subVectors(detPos, pos)
+        
+        return (
+          <meshey key={idx} position={localPos}>
+            <sphereGeometry args={[0.003, 8, 8]} />
+            <meshBasicMaterial color="white" toneMapped={false} />
+          </meshey>
+        )
+      })}
+    </group>
+  )
+}
+
 /* ── Globe Scene ── */
-function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState, visible }) {
+function GlobeScene({ ships, clusters = [], onSelectShip, environment, onViewChange, viewState, visible }) {
   const globeRef = useRef()
   const { camera } = useThree()
   const controlsRef = useRef()
   
   const [diveState, setDiveState] = useState(null)
+  const [expandedClusterId, setExpandedClusterId] = useState(null)
 
   // Handle ship selection with a cinematic "Dive" animation
   const handleSelect = useCallback((ship) => {
@@ -262,8 +335,18 @@ function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState,
               <ShipMarker key={ship.id} ship={ship} onSelect={handleSelect} environment={environment} />
             ))}
 
-            {/* Restricted Zone Outlines on Sphere */}
+            {/* restricted Zone Outlines on Sphere */}
             <ZoneOutlines />
+
+            {/* High-Level Intelligence Clusters */}
+            {clusters.map(cluster => (
+              <ClusterMarker 
+                key={cluster.id} 
+                cluster={cluster} 
+                isExpanded={expandedClusterId === cluster.id}
+                onToggleExpanded={() => setExpandedClusterId(prev => prev === cluster.id ? null : cluster.id)}
+              />
+            ))}
           </group>
         </Suspense>
 
@@ -317,7 +400,7 @@ function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState,
 
 
 
-export default function Globe3D({ ships, onSelectShip, environment, onViewChange, viewState, visible }) {
+export default function Globe3D({ ships, clusters = [], onSelectShip, environment, onViewChange, viewState, visible }) {
   return (
     <div style={{ width:'100%', height:'100%', position:'relative' }}>
       <Canvas
@@ -334,6 +417,7 @@ export default function Globe3D({ ships, onSelectShip, environment, onViewChange
         <Suspense fallback={null}>
           <GlobeScene 
             ships={ships} 
+            clusters={clusters}
             onSelectShip={onSelectShip} 
             environment={environment} 
             onViewChange={onViewChange}

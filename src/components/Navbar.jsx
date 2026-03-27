@@ -142,7 +142,7 @@ export default function Navbar({
           onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
         >
           <span style={{ display: 'inline-block', animation: spinning ? 'iconSpin 0.4s ease' : 'none' }}>
-            {theme === 'dark' ? 'LIGHT' : 'DARK'}
+            {theme === 'dark' ? 'DARK' : 'LIGHT'}
           </span>
         </button>
 
