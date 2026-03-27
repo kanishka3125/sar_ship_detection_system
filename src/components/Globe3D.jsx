@@ -130,7 +130,7 @@ function ZoneOutlines() {
 }
 
 /* ── Pulsing ship marker — position is STABLE via useMemo ── */
-function ShipMarker({ ship, onSelect }) {
+function ShipMarker({ ship, onSelect, environment }) {
   const ref     = useRef()
   const ringRef = useRef()
   const [hovered, setHovered] = useState(false)
@@ -154,6 +154,15 @@ function ShipMarker({ ship, onSelect }) {
       const amp   = isViolation ? 0.55 : isHigh ? 0.38 : 0.14
       const sc = 1 + Math.sin(t * speed) * amp
       ref.current.scale.setScalar(sc)
+
+      // Sea Condition Bobbing
+      if (ship.env && environment?.seaEnabled) {
+        const seaAmp = ship.env.seaState === 'Rough' ? 0.025 : ship.env.seaState === 'Moderate' ? 0.012 : 0.003
+        const seaSpeed = ship.env.seaState === 'Rough' ? 3.5 : ship.env.seaState === 'Moderate' ? 2.0 : 1.0
+        ref.current.position.y = Math.sin(t * seaSpeed + ship.id.length) * seaAmp
+      } else {
+        ref.current.position.y = 0
+      }
     }
     if (ringRef.current && isHigh) {
       const ringSpeed = isViolation ? 2.5 : 1.5
@@ -223,8 +232,10 @@ function ShipMarker({ ship, onSelect }) {
 }
 
 /* ── Globe Scene ── */
-function GlobeScene({ ships, onSelectShip }) {
+function GlobeScene({ ships, onSelectShip, environment }) {
   const globeRef = useRef()
+
+  const isNight = environment?.time === 'night'
 
   // Stable: memoize valid ships to prevent re-renders
   const validShips = useMemo(() =>
@@ -235,11 +246,15 @@ function GlobeScene({ ships, onSelectShip }) {
   return (
     <>
       <color attach="background" args={['#000000']} />
-      <ambientLight intensity={0.6} color="#ffffff" />
+      <ambientLight intensity={isNight ? 0.15 : 0.6} color={isNight ? "#4466ff" : "#ffffff"} />
       {/* Primary Sun Light for Dramatic Day/Night effect */}
-      <directionalLight position={[8, 4, 6]} intensity={3.0} color="#ffffff" />
+      <directionalLight 
+        position={isNight ? [-8, -2, -4] : [8, 4, 6]} 
+        intensity={isNight ? 0.4 : 3.0} 
+        color={isNight ? "#99bbff" : "#ffffff"} 
+      />
       {/* Soft fill light */}
-      <directionalLight position={[-10, -2, -6]} intensity={0.3} color="#6688aa" />
+      <directionalLight position={[-10, -2, -6]} intensity={isNight ? 0.1 : 0.3} color="#6688aa" />
 
       {/* Replacing subtle stars with the massive skyMap sphere placed in EarthMesh */}
 
@@ -252,7 +267,7 @@ function GlobeScene({ ships, onSelectShip }) {
 
       {/* Ship markers — NOT children of globe group, so they don't rotate with it */}
       {validShips.map(ship => (
-        <ShipMarker key={ship.id} ship={ship} onSelect={onSelectShip} />
+        <ShipMarker key={ship.id} ship={ship} onSelect={onSelectShip} environment={environment} />
       ))}
 
       <OrbitControls
@@ -316,7 +331,7 @@ function Legend({ ships }) {
   )
 }
 
-export default function Globe3D({ ships, onSelectShip }) {
+export default function Globe3D({ ships, onSelectShip, environment }) {
   return (
     <div style={{ width:'100%', height:'100%', position:'relative' }}>
       <Canvas
@@ -330,7 +345,7 @@ export default function Globe3D({ ships, onSelectShip }) {
         }}
       >
         <Suspense fallback={null}>
-          <GlobeScene ships={ships} onSelectShip={onSelectShip} />
+          <GlobeScene ships={ships} onSelectShip={onSelectShip} environment={environment} />
         </Suspense>
       </Canvas>
       <Legend ships={ships} />

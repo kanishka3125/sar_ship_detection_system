@@ -73,9 +73,24 @@ const styles = {
     background: 'rgba(0,212,255,0.05)', padding: '4px 10px', borderRadius: '4px',
     border: '1px solid var(--border-color)', letterSpacing: '0.3px',
   },
+  envToggle: {
+    display: 'flex', alignItems: 'center', gap: '8px',
+    background: 'rgba(0,10,30,0.4)', padding: '4px 10px',
+    borderRadius: '10px', border: '1px solid var(--border-color)',
+  },
+  envBtn: (active, color) => ({
+    background: 'transparent', border: 'none', cursor: 'pointer',
+    fontSize: '14px', padding: '4px', borderRadius: '4px',
+    transition: 'all 0.2s',
+    opacity: active ? 1 : 0.3,
+    filter: active ? `drop-shadow(0 0 4px ${color})` : 'grayscale(1)',
+  }),
 }
 
-export default function Navbar({ viewMode, onToggleView, totalShips, highCount, alertCount, theme, onToggleTheme }) {
+export default function Navbar({ 
+  viewMode, onToggleView, totalShips, highCount, alertCount, theme, onToggleTheme,
+  environment, setEnvironment
+}) {
   const [time, setTime] = useState(new Date())
   const [spinning, setSpinning] = useState(false)
   useEffect(() => {
@@ -148,8 +163,35 @@ export default function Navbar({ viewMode, onToggleView, totalShips, highCount, 
         )}
       </div>
 
-      {/* Right: Learn + Theme Toggle + View Toggle + Time */}
+      {/* Right: Environment + Theme Toggle + View Toggle + Time */}
       <div style={styles.right}>
+        {/* Environment Toggles */}
+        <div style={styles.envToggle}>
+          <button 
+            style={styles.envBtn(environment.time === 'day', '#ffc832')}
+            onClick={() => setEnvironment(prev => ({ ...prev, time: prev.time === 'day' ? 'night' : 'day' }))}
+            title={`Switch to ${environment.time === 'day' ? 'Night' : 'Day'}`}
+          >
+            {environment.time === 'day' ? '☀️' : '🌙'}
+          </button>
+          <button 
+            style={styles.envBtn(environment.weatherEnabled, '#00d4ff')}
+            onClick={() => setEnvironment(prev => ({ ...prev, weatherEnabled: !prev.weatherEnabled }))}
+            title={`${environment.weatherEnabled ? 'Disable' : 'Enable'} Weather Layer`}
+          >
+            ☁️
+          </button>
+          <button 
+            style={styles.envBtn(environment.seaEnabled, '#4488ff')}
+            onClick={() => setEnvironment(prev => ({ ...prev, seaEnabled: !prev.seaEnabled }))}
+            title={`${environment.seaEnabled ? 'Disable' : 'Enable'} Sea Simulation`}
+          >
+            🌊
+          </button>
+        </div>
+
+        <div style={styles.divider} />
+        
         <span style={styles.timeStr}>{formatNavbarTime(time)}</span>
         {/* Theme toggle */}
         <button

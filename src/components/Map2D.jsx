@@ -9,7 +9,7 @@ const RISK_COLORS = { HIGH: '#ff2d55', MEDIUM: '#ffb830', LOW: '#00e676' }
 const RISK_GLOW = { HIGH: 'rgba(255, 45, 85, 0.4)', MEDIUM: 'rgba(255, 184, 48, 0.3)', LOW: 'rgba(0, 230, 118, 0.3)' }
 
 /* Build clean, professional CSS-animated DivIcon per ship */
-function makeShipIcon(ship) {
+function makeShipIcon(ship, environment) {
   const isViolation = ship.isViolation
   const color = isViolation ? '#ff2d55' : RISK_COLORS[ship.risk]
   const glow = isViolation ? 'rgba(255, 45, 85, 0.6)' : RISK_GLOW[ship.risk]
@@ -49,6 +49,17 @@ function makeShipIcon(ship) {
     "></div>
   `
 
+  const weatherIcon = (ship.env && environment?.weatherEnabled) ? `
+    <div style="
+      position:absolute; top:-12px; right:-12px;
+      font-size:14px; background:rgba(0,0,0,0.6);
+      width:20px; height:20px; border-radius:50%;
+      display:flex; alignItems:center; justifyContent:center;
+      box-shadow:0 0 5px rgba(0,0,0,0.5);
+      border:1px solid rgba(255,255,255,0.2);
+    ">${ship.env.icon}</div>
+  ` : ''
+
   const html = `
     <style>
       @keyframes markerPulseClean{0%{transform:translate(-50%,-50%) scale(0.6);opacity:0.8}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
@@ -61,6 +72,7 @@ function makeShipIcon(ship) {
     <div style="position:relative;width:${size * 3}px;height:${size * 3}px;" title="${ship.vessel_name}">
       ${pulseRings}
       ${innerShape}
+      ${weatherIcon}
     </div>
   `
 
@@ -72,6 +84,7 @@ function makeShipIcon(ship) {
     popupAnchor: [0, -(size * 1.5)],
   })
 }
+
 
 /* ── Fly-to helper — only fires when focusShip changes ── */
 function FlyToShip({ focusShip }) {
@@ -88,7 +101,7 @@ function FlyToShip({ focusShip }) {
 }
 
 /* ── Inner map: stable markers, no random updates ── */
-function InnerMap({ ships, onSelectShip, focusShip }) {
+function InnerMap({ ships, onSelectShip, focusShip, environment }) {
   const map = useMap()
 
   // Stable: only rebuild markers when ships array reference changes
@@ -105,11 +118,20 @@ function InnerMap({ ships, onSelectShip, focusShip }) {
     validShips.forEach(ship => {
       const { lat, lng } = validateCoords(ship.lat, ship.lng)
       const color = RISK_COLORS[ship.risk]
-      const icon = makeShipIcon(ship)
+      const icon = makeShipIcon(ship, environment)
       const marker = L.marker([lat, lng], { icon })
 
       const popupContent = document.createElement('div')
       popupContent.style.cssText = 'font-family:var(--font-main);min-width:220px;padding:4px;'
+      
+      const weatherInfo = ship.env ? `
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border-color);font-size:10px;color:var(--text-secondary);">
+          <span>${ship.env.icon} ${ship.env.condition}</span>
+          <span>🌡️ ${ship.env.temp}°C</span>
+          <span>💨 ${ship.env.windSpeed}kt</span>
+        </div>
+      ` : ''
+
       popupContent.innerHTML = `
         <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:6px;padding:14px;color:var(--text-primary);box-shadow:0 8px 16px rgba(0,0,0,0.15);">
           <div style="color:var(--text-primary);font-weight:600;font-size:14px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;">
@@ -124,6 +146,7 @@ function InnerMap({ ships, onSelectShip, focusShip }) {
             <div style="margin-bottom:3px;">LAT: ${lat.toFixed(4)}°N  LNG: ${lng.toFixed(4)}°E</div>
             <div>SPD: ${ship.speed_knots}kt | HDG: ${ship.heading}° | AIS: <span style="color:${ship.ais_status === 'ABSENT' ? '#d32f2f' : '#388e3c'};font-weight:600;">${ship.ais_status}</span></div>
           </div>
+          ${weatherInfo}
         </div>
       `
       const btn = document.createElement('button')
@@ -151,18 +174,25 @@ function InnerMap({ ships, onSelectShip, focusShip }) {
     })
 
     return () => markers.forEach(m => m.remove())
-  }, [validShips, onSelectShip, map])
+  }, [validShips, onSelectShip, map, environment])
 
   return <FlyToShip focusShip={focusShip} />
 }
 
 /* ── Main Map component ── */
-export default function Map2D({ ships, onSelectShip, focusShip }) {
+export default function Map2D({ ships, onSelectShip, focusShip, environment }) {
   const [mapStyle, setMapStyle] = useState('map') // 'map' or 'satellite'
 
+  const isNight = environment?.time === 'night'
+
   // OpenStreetMap Default Carto Light/Standard
-  const mapUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-  const mapAttr = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  const mapUrl = isNight 
+    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+  
+  const mapAttr = isNight
+    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   
   // Esri World Imagery (Satellite)
   const satUrl = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -281,7 +311,7 @@ export default function Map2D({ ships, onSelectShip, focusShip }) {
           </Polygon>
         ))}
         {ships && ships.length > 0 && (
-          <InnerMap ships={ships} onSelectShip={onSelectShip} focusShip={focusShip} />
+          <InnerMap ships={ships} onSelectShip={onSelectShip} focusShip={focusShip} environment={environment} />
         )}
       </MapContainer>
     </div>

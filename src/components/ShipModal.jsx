@@ -53,7 +53,7 @@ function ConfidenceBar({ value }) {
   )
 }
 
-export default function ShipModal({ ship, onClose }) {
+export default function ShipModal({ ship, environment, onClose }) {
   useEffect(() => {
     const h = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', h)
@@ -172,6 +172,8 @@ export default function ShipModal({ ship, onClose }) {
             <Field label="SPEED" value={`${ship.speed_knots} kts`} mono />
             <Field label="HEADING" value={`${ship.heading}°`} mono />
             <Field label="AIS STATUS" value={ship.ais_status} color={aisColor} mono />
+            <Field label="ENVIRONMENT" value={`${ship.env?.icon} ${ship.env?.condition}`} />
+            <Field label="SEA STATE" value={ship.env?.seaState} color={ship.env?.seaState === 'Rough' ? '#ff9500' : 'var(--text-primary)'} />
             <Field label="COORDINATES" value={`${ship.lat.toFixed(4)}°N  ${ship.lng.toFixed(4)}°E`} mono />
             <Field label="LAST SEEN" value={formatLocalTime(ship.last_seen)} mono />
           </div>
@@ -180,9 +182,17 @@ export default function ShipModal({ ship, onClose }) {
           <div style={{ margin: '0 22px 16px', background: `${color}08`, border: `1px solid ${color}30`, borderRadius: 8, padding: 16 }}>
             <div style={{ fontSize: 10, letterSpacing: '1.5px', color, fontWeight: 700, marginBottom: 8 }}>⚠ INTELLIGENCE ASSESSMENT</div>
             <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6 }}>
-              {ship.ais_status === 'ABSENT' ? 'No AIS detected — potential dark vessel. Evasive maneuvers probable.' :
+              {ship.ais_status === 'ABSENT' ? (
+                ship.env?.condition === 'Stormy' || ship.env?.seaState === 'Rough' 
+                  ? 'CRITICAL: No AIS detected in heavy weather. High probability of clandestine operations or emergency distress.'
+                  : 'No AIS detected — potential dark vessel. Evasive maneuvers probable.'
+              ) :
                 ship.ais_status === 'SPOOFED' ? 'AIS transmission mismatch — significant spoofing probability detected. Proceed with caution.' :
-                  ship.risk === 'HIGH' ? 'AIS verified — anomalous route patterns flagged. Intercept highly recommended.' :
+                  ship.risk === 'HIGH' ? (
+                    ship.env?.seaState === 'Rough'
+                      ? 'HIGH RISK: Anomalous patterns detected in rough seas. Vessel stability and intent flagged for monitoring.'
+                      : 'AIS verified — anomalous route patterns flagged. Intercept highly recommended.'
+                  ) :
                     'AIS verified — normal route and predictable navigation patterns recognized.'}
             </div>
           </div>

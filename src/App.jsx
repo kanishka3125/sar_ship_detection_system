@@ -11,6 +11,7 @@ import shipsData  from './data/ships.json'
 import alertsData from './data/alerts.json'
 import { RESTRICTED_ZONES } from './data/zones'
 import { findZoneViolation } from './utils/geoUtils'
+import { getShipEnvironment, getSystemTimeMode } from './utils/envUtils'
 
 const ONBOARDING_KEY = 'zenith_onboarding_done'
 const THEME_KEY      = 'zenith_theme'
@@ -24,12 +25,25 @@ export default function App() {
     () => localStorage.getItem(THEME_KEY) || 'dark'
   )
 
+  // 1. Environment State
+  const [environment, setEnvironment] = useState({
+    time: getSystemTimeMode(), // 'day' | 'night'
+    weatherEnabled: true,
+    seaEnabled: true
+  })
+
   // 1. Process ships for violations and 2. Generate dynamic alerts
   const { processedShips, mergedAlerts } = useMemo(() => {
     const dynamicViolations = []
     
     const ships = shipsData.map(ship => {
+      // Inject environment data
+      const env = getShipEnvironment(ship.id)
+      
       const violatedZone = findZoneViolation(ship.lat, ship.lng, RESTRICTED_ZONES)
+      let isViolation = false
+      let violatedZoneName = ''
+
       if (violatedZone) {
         const violationAlert = {
           alert_id: `AUTO-ALT-${ship.id}`,
@@ -44,9 +58,23 @@ export default function App() {
           is_dynamic: true
         }
         dynamicViolations.push(violationAlert)
-        return { ...ship, isViolation: true, violatedZoneName: violatedZone.name }
+        isViolation = true
+        violatedZoneName = violatedZone.name
       }
-      return ship
+      
+      // Update risk logic: Bad weather + No AIS = High Risk
+      let riskVal = ship.risk
+      if ((env.condition === 'Stormy' || env.seaState === 'Rough') && ship.ais_status === 'ABSENT' && riskVal !== 'HIGH') {
+        riskVal = 'HIGH'
+      }
+
+      return { 
+        ...ship, 
+        isViolation, 
+        violatedZoneName,
+        env, // Attach environment data
+        risk: riskVal
+      }
     })
 
     // Combine static alerts with dynamic ones, avoiding duplicates for the same ship
@@ -111,6 +139,8 @@ export default function App() {
         alertCount={alertCount}
         theme={theme}
         onToggleTheme={handleToggleTheme}
+        environment={environment}
+        setEnvironment={setEnvironment}
       />
 
       {/* Main Content Row */}
@@ -118,9 +148,18 @@ export default function App() {
         {/* Map / Globe Area */}
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
           {viewMode === '2d' ? (
-            <Map2D ships={processedShips} onSelectShip={handleSelectShip} focusShip={focusShip} />
+            <Map2D 
+              ships={processedShips} 
+              onSelectShip={handleSelectShip} 
+              focusShip={focusShip} 
+              environment={environment} 
+            />
           ) : (
-            <Globe3D ships={processedShips} onSelectShip={handleSelectShip} />
+            <Globe3D 
+              ships={processedShips} 
+              onSelectShip={handleSelectShip} 
+              environment={environment} 
+            />
           )}
 
           {/* Overlay: View Mode Tag */}
@@ -146,7 +185,13 @@ export default function App() {
       <StatsBar ships={processedShips} />
 
       {/* Ship Modal */}
-      {selectedShip && <ShipModal ship={selectedShip} onClose={handleCloseModal} />}
+      {selectedShip && (
+        <ShipModal 
+          ship={selectedShip} 
+          environment={environment}
+          onClose={handleCloseModal} 
+        />
+      )}
 
       {/* Onboarding Overlay */}
       {showOnboarding && <OnboardingOverlay onDismiss={handleDismissOnboarding} />}
