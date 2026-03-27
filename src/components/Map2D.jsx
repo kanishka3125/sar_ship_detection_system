@@ -1,5 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
-import { MapContainer, TileLayer, Polygon, Popup, useMap, Tooltip, useMapEvents, Marker, Polyline, LayerGroup } from 'react-leaflet'
+import { MapContainer, TileLayer, Polygon, Popup, useMap, Tooltip, useMapEvents, Marker, Polyline, LayerGroup, Circle } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { validateCoords } from '../utils/timeUtils'
@@ -210,22 +210,13 @@ function MapEvents({ onViewChange, viewState }) {
   return null
 }
 
-export default function Map2D({ ships, onSelectShip, focusShip, environment, viewState, onViewChange, visible }) {
+export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip, focusShip, environment, viewState, onViewChange, visible }) {
   const [mapStyle, setMapStyle] = useState('map') // 'map' or 'satellite'
-  const [darkAlerts, setDarkAlerts] = useState([])
-  const [spoofAlerts, setSpoofAlerts] = useState([])
-
-  // Fetch alerts on mount
-  useEffect(() => {
-    fetch('http://localhost:8000/alerts')
-      .then(res => res.json())
-      .then(data => {
-        const alerts = data || []
-        setDarkAlerts(alerts.filter(a => a.type === "DARK_VESSEL"))
-        setSpoofAlerts(alerts.filter(a => a.type === "AIS_SPOOFING"))
-      })
-      .catch(err => console.error("Alerts fetch failed:", err))
-  }, [])
+  const [expandedClusterId, setExpandedClusterId] = useState(null)
+  
+  const darkAlerts   = useMemo(() => (alerts || []).filter(a => a.type === "DARK_VESSEL"), [alerts])
+  const spoofAlerts  = useMemo(() => (alerts || []).filter(a => a.type === "AIS_SPOOFING"), [alerts])
+  const loiterAlerts = useMemo(() => (alerts || []).filter(a => a.type === "LOITERING"), [alerts])
 
   const darkIcon = L.divIcon({
     className: 'red-pulse',
@@ -243,6 +234,19 @@ export default function Map2D({ ships, onSelectShip, focusShip, environment, vie
     className: 'marker-red-static',
     iconSize: [10, 10],
     iconAnchor: [5, 5]
+  })
+
+  const loiterIcon = L.divIcon({
+    className: 'marker-amber',
+    html: '<span style="pointer-events:none">⏱</span>',
+    iconSize: [16, 16],
+    iconAnchor: [8, 8]
+  })
+
+  const dotIcon = L.divIcon({
+    className: 'detection-dot',
+    iconSize: [6, 6],
+    iconAnchor: [3, 3]
   })
 
   const isNight = environment?.time === 'night'
@@ -422,6 +426,75 @@ export default function Map2D({ ships, onSelectShip, focusShip, environment, vie
             </Polyline>
           </LayerGroup>
         ))}
+
+        {/* Loitering Alerts (Amber + Clock) */}
+        {loiterAlerts.map((alert, idx) => (
+          <Marker 
+            key={`loiter-alt-${idx}`} 
+            position={[alert.lat, alert.lng]} 
+            icon={loiterIcon}
+            eventHandlers={{
+              click: () => {
+                const matchingShip = ships.find(s => s.id === alert.vessel_id)
+                if (matchingShip) onSelectShip(matchingShip)
+              }
+            }}
+          >
+            <Tooltip permanent direction="top" className="ship-tooltip">
+              {alert.duration} min stationary
+            </Tooltip>
+            <Popup>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                <b style={{ color: '#ffb830' }}>LOITERING DETECTED</b><br/>
+                ID: {alert.vessel_id}<br/>
+                {alert.message}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* Intelligence Cluster Circles */}
+        {clusters.map((cluster) => {
+          const isExpanded = expandedClusterId === cluster.id
+          const labelIcon = L.divIcon({
+            className: 'cluster-label-div',
+            html: `<span class="cluster-label-text">${cluster.vessel_count}</span>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          })
+
+          return (
+            <LayerGroup key={`cluster-${cluster.id}`}>
+              <Circle
+                center={cluster.center}
+                radius={cluster.vessel_count * 350} // Scale radius with count
+                pathOptions={{
+                  color: 'orange',
+                  fillColor: 'orange',
+                  fillOpacity: isExpanded ? 0.4 : 0.2, // Darken when expanded
+                  weight: isExpanded ? 3 : 1,
+                  dashArray: isExpanded ? '' : '5, 5'
+                }}
+                eventHandlers={{
+                  click: (e) => {
+                    L.DomEvent.stopPropagation(e)
+                    setExpandedClusterId(isExpanded ? null : cluster.id)
+                  }
+                }}
+              >
+                <Tooltip direction="top">Suspicious Vessel Grouping ({cluster.vessel_count} ships)</Tooltip>
+              </Circle>
+              
+              {/* Cluster Count Label */}
+              <Marker position={cluster.center} icon={labelIcon} interactive={false} />
+
+              {/* Drill-Down Detections (White Dots) */}
+              {isExpanded && cluster.detections && cluster.detections.map((det, dIdx) => (
+                <Marker key={`${cluster.id}-det-${dIdx}`} position={det} icon={dotIcon} interactive={false} />
+              ))}
+            </LayerGroup>
+          )
+        })}
       </MapContainer>
     </div>
   )

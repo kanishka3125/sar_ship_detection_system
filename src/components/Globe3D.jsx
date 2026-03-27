@@ -17,8 +17,7 @@ function latLngToVec3(lat, lng, radius = 1.025) {
   const latRad = lat * (Math.PI / 180)
   const lngRad = normalizedLng * (Math.PI / 180)
 
-  // 3. Requested Projection Formula (Standard Geographic to Cartesian)
-  // y is up, (0, 0, radius) is 0°N, 0°E
+  // 3. User Requested Projection (x=cos*sin, y=sin, z=cos*cos)
   const x = radius * Math.cos(latRad) * Math.sin(lngRad)
   const y = radius * Math.sin(latRad)
   const z = radius * Math.cos(latRad) * Math.cos(lngRad)
@@ -27,7 +26,7 @@ function latLngToVec3(lat, lng, radius = 1.025) {
 }
 
 /* ── Realistic Earth with Satellite Textures & Clouds ── */
-function EarthMesh({ globeRef }) {
+function EarthMesh() {
   const [dayMap, bumpMap, specMap, skyMap] = useTexture([
     '/models/earth_color_vibrant.jpg',
     '/models/earth_topology_vibrant.png',
@@ -47,7 +46,7 @@ function EarthMesh({ globeRef }) {
   // Auto-rotation disabled for professional aesthetic
 
   return (
-    <group ref={globeRef}>
+    <group rotation={[0, -Math.PI / 2, 0]}>
       {/* 1. Main Earth Sphere (Terrain + Oceans) */}
       <mesh>
         <sphereGeometry args={[1, 128, 128]} />
@@ -91,10 +90,10 @@ function EarthMesh({ globeRef }) {
 }
 
 /* ── Fallback plain globe ── */
-function EarthFallback({ globeRef }) {
+function EarthFallback() {
   // Auto-rotation disabled
   return (
-    <group ref={globeRef}>
+    <group rotation={[0, -Math.PI / 2, 0]}>
       <mesh>
         <sphereGeometry args={[1, 64, 64]} />
         <meshPhongMaterial color="#0d3060" emissive="#040f1e" specular="#226688" shininess={15} />
@@ -152,7 +151,7 @@ function ShipMarker({ ship, onSelect, environment }) {
   const color    = isViolation ? '#ff0000' : RISK_COLORS[ship.risk]
   const threeCol = useMemo(() => new THREE.Color(color), [color])
   const isHigh   = ship.risk === 'HIGH' || isViolation
-  const size     = isViolation ? 0.032 : isHigh ? 0.026 : ship.risk === 'MEDIUM' ? 0.018 : 0.013
+  const size     = isViolation ? 0.018 : isHigh ? 0.014 : ship.risk === 'MEDIUM' ? 0.010 : 0.007
 
   // 1:1 Mapping: Pre-calculate stable position once (No drift)
   const pos = useMemo(() => latLngToVec3(ship.lat, ship.lng), [ship.lat, ship.lng])
@@ -278,17 +277,19 @@ function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState,
 
       {/* Replacing subtle stars with the massive skyMap sphere placed in EarthMesh */}
 
-        <Suspense fallback={<EarthFallback globeRef={globeRef} />}>
-          <EarthMesh globeRef={globeRef} />
-          
-          {/* Ship markers — NOW children of globe group, so they rotate WITH it */}
-          {validShips.map(ship => (
-            <ShipMarker key={ship.id} ship={ship} onSelect={handleSelect} environment={environment} />
-          ))}
-        </Suspense>
+        <Suspense fallback={<EarthFallback />}>
+          <group ref={globeRef}>
+            <EarthMesh />
+            
+            {/* Ship markers — children of rotated globe group for 1:1 parity */}
+            {validShips.map(ship => (
+              <ShipMarker key={ship.id} ship={ship} onSelect={handleSelect} environment={environment} />
+            ))}
 
-        {/* Restricted Zone Outlines on Sphere */}
-        <ZoneOutlines />
+            {/* Restricted Zone Outlines on Sphere */}
+            <ZoneOutlines />
+          </group>
+        </Suspense>
 
       <OrbitControls
         ref={controlsRef}

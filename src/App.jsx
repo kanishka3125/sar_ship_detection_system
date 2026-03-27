@@ -32,6 +32,32 @@ export default function App() {
     seaEnabled: true
   })
 
+  // 1.1 Alert & Cluster State (Live Feeds)
+  const [liveAlerts, setLiveAlerts] = useState([])
+  const [clusters,   setClusters]   = useState([])
+
+  // Fetch alerts and clusters from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [alertRes, clusterRes] = await Promise.all([
+          fetch('http://localhost:8000/alerts'),
+          fetch('http://localhost:8000/clusters')
+        ])
+        const alertsData = await alertRes.json()
+        const clustersData = await clusterRes.json()
+        
+        setLiveAlerts(alertsData || [])
+        setClusters(clustersData || [])
+      } catch (err) {
+        console.error("Intelligence sync failed:", err)
+      }
+    }
+    fetchData()
+    const interval = setInterval(fetchData, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
   // 2. View State (for sync between 2D and 3D)
   const [viewState, setViewState] = useState({
     center: [11.5, 79.0], // [lat, lng]
@@ -90,13 +116,20 @@ export default function App() {
       }
     })
 
-    // Combine static alerts with dynamic ones, avoiding duplicates for the same ship
-    const combinedAlerts = [...dynamicViolations, ...alertsData].filter(
-      (alert, index, self) => index === self.findIndex(a => a.vessel_id === alert.vessel_id)
+    // Combine static alerts, dynamic zone violations, and live API alerts
+    const allAlerts = [...dynamicViolations, ...alertsData, ...liveAlerts]
+    
+    // De-duplicate by vessel or alert ID
+    const combinedAlerts = allAlerts.filter(
+      (alert, index, self) => index === self.findIndex(a => (a.vessel_id && a.vessel_id === alert.vessel_id) || (a.alert_id === alert.alert_id))
     ).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
 
     return { processedShips: ships, mergedAlerts: combinedAlerts }
-  }, [])
+  }, [liveAlerts])
+
+  const loiteringCount = useMemo(() => 
+    liveAlerts.filter(a => a.type === 'LOITERING').length, 
+  [liveAlerts])
 
   const handleToggleTheme = useCallback(() => {
     setTheme(prev => {
@@ -170,6 +203,8 @@ export default function App() {
           >
             <Map2D 
               ships={processedShips} 
+              alerts={liveAlerts}
+              clusters={clusters}
               onSelectShip={handleSelectShip} 
               focusShip={focusShip} 
               environment={environment}
@@ -218,7 +253,7 @@ export default function App() {
       </div>
 
       {/* Stats Bar */}
-      <StatsBar ships={processedShips} />
+      <StatsBar ships={processedShips} loiteringCount={loiteringCount} />
 
       {/* Ship Modal */}
       {selectedShip && (

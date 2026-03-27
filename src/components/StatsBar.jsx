@@ -27,7 +27,7 @@ const styles = {
   }),
 }
 
-export default function StatsBar({ ships }) {
+export default function StatsBar({ ships, loiteringCount = 0 }) {
   const total   = ships.length
   const high    = ships.filter(s => s.risk === 'HIGH').length
   const medium  = ships.filter(s => s.risk === 'MEDIUM').length
@@ -47,6 +47,7 @@ export default function StatsBar({ ships }) {
     { label: 'DARK VESSELS',  val: dark,             color: '#ff2d55' },
     { label: 'AIS SPOOFED',   val: spoofed,          color: '#ffb830' },
     { label: 'AIS VERIFIED',  val: present,          color: '#00e676' },
+    { label: 'LOITERING',     val: loiteringCount,   color: '#ffb830' },
     { label: 'AVG CONFIDENCE',val: `${avgConf}%`,    color: '#4488ff' },
   ]
 
