@@ -14,7 +14,7 @@ export function isPointInPolygon(lat, lng, polygon) {
 
     const intersect = ((yi > lng) !== (yj > lng)) &&
       (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi)
-    
+
     if (intersect) inside = !inside
   }
   return inside

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
-import { MapContainer, TileLayer, Polygon, Popup, useMap, Tooltip } from 'react-leaflet'
+import { MapContainer, TileLayer, Polygon, Popup, useMap, Tooltip, useMapEvents, Marker, Polyline, LayerGroup } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { validateCoords } from '../utils/timeUtils'
@@ -12,7 +12,7 @@ const RISK_GLOW = { HIGH: 'rgba(255, 45, 85, 0.4)', MEDIUM: 'rgba(255, 184, 48, 
 function makeShipIcon(ship, environment) {
   const isViolation = ship.isViolation
   const color = isViolation ? '#ff2d55' : RISK_COLORS[ship.risk]
-  const glow = isViolation ? 'rgba(255, 45, 85, 0.6)' : RISK_GLOW[ship.risk]
+  const glow = RISK_GLOW[ship.risk] // Define glow here
   const isHigh = ship.risk === 'HIGH' || isViolation
   const isMed = ship.risk === 'MEDIUM'
   const size = isViolation ? 18 : isHigh ? 16 : isMed ? 14 : 12
@@ -101,8 +101,17 @@ function FlyToShip({ focusShip }) {
 }
 
 /* ── Inner map: stable markers, no random updates ── */
-function InnerMap({ ships, onSelectShip, focusShip, environment }) {
+function InnerMap({ ships, onSelectShip, focusShip, environment, visible }) {
   const map = useMap()
+
+  // IMPORTANT: Fix for the "blank screen" or gray tiles when switching views
+  useEffect(() => {
+    if (visible) {
+      setTimeout(() => {
+        map.invalidateSize()
+      }, 100)
+    }
+  }, [visible, map])
 
   // Stable: only rebuild markers when ships array reference changes
   const validShips = useMemo(() =>
@@ -179,9 +188,62 @@ function InnerMap({ ships, onSelectShip, focusShip, environment }) {
   return <FlyToShip focusShip={focusShip} />
 }
 
-/* ── Main Map component ── */
-export default function Map2D({ ships, onSelectShip, focusShip, environment }) {
+/* ── View change listener for zoom-out transitions ── */
+function MapEvents({ onViewChange, viewState }) {
+  const map = useMapEvents({
+    zoomend: () => {
+      const zoom = map.getZoom()
+      if (zoom <= 3 && onViewChange) {
+        const center = map.getCenter()
+        onViewChange({ center: [center.lat, center.lng], zoom: 3 })
+      }
+    }
+  })
+
+  // Smooth entry animation when switching from Globe
+  useEffect(() => {
+    if (viewState) {
+      map.flyTo(viewState.center, viewState.zoom, { animate: true, duration: 1.5 })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null
+}
+
+export default function Map2D({ ships, onSelectShip, focusShip, environment, viewState, onViewChange, visible }) {
   const [mapStyle, setMapStyle] = useState('map') // 'map' or 'satellite'
+  const [darkAlerts, setDarkAlerts] = useState([])
+  const [spoofAlerts, setSpoofAlerts] = useState([])
+
+  // Fetch alerts on mount
+  useEffect(() => {
+    fetch('http://localhost:8000/alerts')
+      .then(res => res.json())
+      .then(data => {
+        const alerts = data || []
+        setDarkAlerts(alerts.filter(a => a.type === "DARK_VESSEL"))
+        setSpoofAlerts(alerts.filter(a => a.type === "AIS_SPOOFING"))
+      })
+      .catch(err => console.error("Alerts fetch failed:", err))
+  }, [])
+
+  const darkIcon = L.divIcon({
+    className: 'red-pulse',
+    iconSize: [12, 12],
+    iconAnchor: [6, 6]
+  })
+
+  const aisIcon = L.divIcon({
+    className: 'marker-yellow',
+    iconSize: [10, 10],
+    iconAnchor: [5, 5]
+  })
+
+  const sarIconStatic = L.divIcon({
+    className: 'marker-red-static',
+    iconSize: [10, 10],
+    iconAnchor: [5, 5]
+  })
 
   const isNight = environment?.time === 'night'
 
@@ -257,13 +319,14 @@ export default function Map2D({ ships, onSelectShip, focusShip, environment }) {
       ) : null}
 
       <MapContainer
-        center={[11.5, 79.0]}
-        zoom={7}
+        center={viewState?.center || [11.5, 79.0]}
+        zoom={viewState?.zoom || 7}
         style={{ width: '100%', height: '100%' }}
         zoomControl={true}
         preferCanvas={true}
         zoomAnimation={true}
       >
+        <MapEvents onViewChange={onViewChange} viewState={viewState} />
         {mapStyle === 'map' ? (
           <TileLayer
             key="osm-tiles"
@@ -311,8 +374,54 @@ export default function Map2D({ ships, onSelectShip, focusShip, environment }) {
           </Polygon>
         ))}
         {ships && ships.length > 0 && (
-          <InnerMap ships={ships} onSelectShip={onSelectShip} focusShip={focusShip} environment={environment} />
+          <InnerMap ships={ships} onSelectShip={onSelectShip} focusShip={focusShip} environment={environment} visible={visible} />
         )}
+
+        {/* Dark Vessel Alerts Markers */}
+        {darkAlerts.map((alert, idx) => (
+          <Marker 
+            key={`dark-alt-${idx}`} 
+            position={[alert.lat, alert.lng]} 
+            icon={darkIcon}
+            eventHandlers={{
+              click: () => {
+                const matchingShip = ships.find(s => s.id === alert.vessel_id)
+                if (matchingShip) onSelectShip(matchingShip)
+              }
+            }}
+          >
+            <Tooltip permanent direction="top" className="ship-tooltip">
+              DARK VESSEL ALERT
+            </Tooltip>
+            <Popup>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px' }}>
+                <b style={{ color: '#ff2d55' }}>DARK VESSEL DETECTED</b><br/>
+                ID: {alert.vessel_id || alert.alert_id}<br/>
+                {alert.message}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
+        {/* AIS Spoofing Alerts (Pairs + Logic) */}
+        {spoofAlerts.map((alert, idx) => (
+          <LayerGroup key={`spoof-group-${idx}`}>
+            <Marker position={[alert.ais_lat, alert.ais_lon]} icon={aisIcon}>
+              <Tooltip>AIS Reported Position</Tooltip>
+            </Marker>
+            <Marker position={[alert.sar_lat, alert.sar_lon]} icon={sarIconStatic}>
+              <Tooltip>Actual SAR Detection</Tooltip>
+            </Marker>
+            <Polyline
+              positions={[[alert.ais_lat, alert.ais_lon], [alert.sar_lat, alert.sar_lon]]}
+              pathOptions={{ color: 'orange', dashArray: '6 4', weight: 2 }}
+            >
+              <Tooltip sticky>
+                Deviation: {alert.delta_km} km
+              </Tooltip>
+            </Polyline>
+          </LayerGroup>
+        ))}
       </MapContainer>
     </div>
   )

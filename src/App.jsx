@@ -32,11 +32,24 @@ export default function App() {
     seaEnabled: true
   })
 
+  // 2. View State (for sync between 2D and 3D)
+  const [viewState, setViewState] = useState({
+    center: [11.5, 79.0], // [lat, lng]
+    zoom: 7
+  })
+
+  const handleViewTransition = useCallback((newMode, coords) => {
+    if (coords) {
+      setViewState(prev => ({ ...prev, center: coords.center || prev.center, zoom: coords.zoom || prev.zoom }))
+    }
+    setViewMode(newMode)
+  }, [])
+
   // 1. Process ships for violations and 2. Generate dynamic alerts
   const { processedShips, mergedAlerts } = useMemo(() => {
     const dynamicViolations = []
     
-    const ships = shipsData.map(ship => {
+    const ships = (shipsData || []).map(ship => {
       // Inject environment data
       const env = getShipEnvironment(ship.id)
       
@@ -133,7 +146,6 @@ export default function App() {
       {/* Navbar */}
       <Navbar
         viewMode={viewMode}
-        onToggleView={setViewMode}
         totalShips={processedShips.length}
         highCount={highCount}
         alertCount={alertCount}
@@ -141,26 +153,50 @@ export default function App() {
         onToggleTheme={handleToggleTheme}
         environment={environment}
         setEnvironment={setEnvironment}
+        onToggleView={(m) => handleViewTransition(m)}
       />
 
       {/* Main Content Row */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Map / Globe Area */}
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          {viewMode === '2d' ? (
+          <div 
+            style={{ 
+              position: 'absolute', inset: 0, 
+              transition: 'opacity 1s ease-in-out', 
+              opacity: viewMode === '2d' ? 1 : 0,
+              zIndex: viewMode === '2d' ? 2 : 1,
+              pointerEvents: viewMode === '2d' ? 'auto' : 'none'
+            }}
+          >
             <Map2D 
               ships={processedShips} 
               onSelectShip={handleSelectShip} 
               focusShip={focusShip} 
-              environment={environment} 
+              environment={environment}
+              viewState={viewState}
+              onViewChange={(coords) => handleViewTransition('3d', coords)}
+              visible={viewMode === '2d'}
             />
-          ) : (
+          </div>
+
+          <div 
+            style={{ 
+              position: 'absolute', inset: 0, 
+              transition: 'opacity 1s ease-in-out', 
+              opacity: viewMode === '3d' ? 1 : 0,
+              zIndex: viewMode === '3d' ? 2 : 1,
+              pointerEvents: viewMode === '3d' ? 'auto' : 'none'
+            }}
+          >
             <Globe3D 
               ships={processedShips} 
               onSelectShip={handleSelectShip} 
-              environment={environment} 
+              environment={environment}
+              viewState={viewState}
+              onViewChange={(coords) => handleViewTransition('2d', coords)}
+              visible={viewMode === '3d'}
             />
-          )}
+          </div>
 
           {/* Overlay: View Mode Tag */}
           <div style={{

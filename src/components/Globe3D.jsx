@@ -1,22 +1,29 @@
-import { useRef, useMemo, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { useRef, useMemo, useState, useCallback, useEffect } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls, Stars, Html, useTexture } from '@react-three/drei'
 import { Suspense } from 'react'
 import * as THREE from 'three'
 import { validateCoords } from '../utils/timeUtils'
 import { RESTRICTED_ZONES } from '../data/zones'
 
-const RISK_COLORS = { HIGH: '#ff2d55', MEDIUM: '#ffb830', LOW: '#00e676' }
+const RISK_COLORS = { HIGH: '#ff0000', MEDIUM: '#ffb830', LOW: '#00e676' }
 
 /* Convert lat/lng → stable 3D Vector3 on unit sphere */
 function latLngToVec3(lat, lng, radius = 1.025) {
-  const phi   = (90 - lat)  * (Math.PI / 180)
-  const theta = (lng + 180) * (Math.PI / 180)
-  return [
-    -(radius * Math.sin(phi) * Math.cos(theta)),
-     radius * Math.cos(phi),
-     radius * Math.sin(phi) * Math.sin(theta),
-  ]
+  // 1. Longitude Normalization: ((lng + 180) % 360) - 180
+  const normalizedLng = ((lng + 180) % 360) - 180
+  
+  // 2. Degrees to Radians
+  const latRad = lat * (Math.PI / 180)
+  const lngRad = normalizedLng * (Math.PI / 180)
+
+  // 3. Requested Projection Formula (Standard Geographic to Cartesian)
+  // y is up, (0, 0, radius) is 0°N, 0°E
+  const x = radius * Math.cos(latRad) * Math.sin(lngRad)
+  const y = radius * Math.sin(latRad)
+  const z = radius * Math.cos(latRad) * Math.cos(lngRad)
+
+  return new THREE.Vector3(x, y, z)
 }
 
 /* ── Realistic Earth with Satellite Textures & Clouds ── */
@@ -37,9 +44,7 @@ function EarthMesh({ globeRef }) {
     })
   }, [dayMap, bumpMap, specMap, skyMap])
 
-  useFrame((_, delta) => {
-    if (globeRef.current) globeRef.current.rotation.y += delta * 0.04
-  })
+  // Auto-rotation disabled for professional aesthetic
 
   return (
     <group ref={globeRef}>
@@ -49,10 +54,12 @@ function EarthMesh({ globeRef }) {
         <meshStandardMaterial
           map={dayMap}
           bumpMap={bumpMap}
-          bumpScale={0.02}
+          bumpScale={0.08}
           roughnessMap={specMap}
-          roughness={0.75}
+          roughness={1} 
           metalness={0.1}
+          emissive="#112233" // Subtle oceanic depth
+          emissiveIntensity={0.4}
         />
       </mesh>
 
@@ -62,16 +69,22 @@ function EarthMesh({ globeRef }) {
         <meshBasicMaterial map={skyMap} side={THREE.BackSide} />
       </mesh>
 
-      {/* 4. Very tight Atmospheric Glow */}
+      {/* 4. Atmosphere Base Glow (Tight) */}
       <mesh>
-        <sphereGeometry args={[1.002, 64, 64]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.06} side={THREE.FrontSide} blending={THREE.AdditiveBlending} />
+        <sphereGeometry args={[1.005, 64, 64]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.12} side={THREE.FrontSide} blending={THREE.AdditiveBlending} />
       </mesh>
 
-      {/* 5. Outer Atmospheric Halo */}
-      <mesh scale={[1.015, 1.015, 1.015]}>
+      {/* 5. Prominent Blue Halo */}
+      <mesh scale={[1.09, 1.09, 1.09]}>
         <sphereGeometry args={[1, 64, 64]} />
-        <meshBasicMaterial color="#aabbff" transparent opacity={0.08} side={THREE.BackSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <meshBasicMaterial color="#2266ff" transparent opacity={0.25} side={THREE.BackSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </mesh>
+      
+      {/* 6. Soft Outer Rim */}
+      <mesh scale={[1.12, 1.12, 1.12]}>
+        <sphereGeometry args={[1, 64, 64]} />
+        <meshBasicMaterial color="#1a44bb" transparent opacity={0.10} side={THREE.BackSide} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
     </group>
   )
@@ -79,7 +92,7 @@ function EarthMesh({ globeRef }) {
 
 /* ── Fallback plain globe ── */
 function EarthFallback({ globeRef }) {
-  useFrame((_, delta) => { if (globeRef.current) globeRef.current.rotation.y += delta * 0.08 })
+  // Auto-rotation disabled
   return (
     <group ref={globeRef}>
       <mesh>
@@ -106,12 +119,12 @@ function ZoneOutlines() {
   const zoneLines = useMemo(() => {
     return RESTRICTED_ZONES.map(zone => {
       const points = zone.positions.map(([lat, lng]) => {
-        const [x, y, z] = latLngToVec3(lat, lng, 1.005)
-        return new THREE.Vector3(x, y, z)
+        const vec = latLngToVec3(lat, lng, 1.005)
+        return new THREE.Vector3(vec.x, vec.y, vec.z)
       })
       // Close the loop
-      const [x0, y0, z0] = latLngToVec3(zone.positions[0][0], zone.positions[0][1], 1.005)
-      points.push(new THREE.Vector3(x0, y0, z0))
+      const vec0 = latLngToVec3(zone.positions[0][0], zone.positions[0][1], 1.005)
+      points.push(new THREE.Vector3(vec0.x, vec0.y, vec0.z))
       
       const geometry = new THREE.BufferGeometry().setFromPoints(points)
       return { geometry, color: zone.color, name: zone.name }
@@ -136,16 +149,13 @@ function ShipMarker({ ship, onSelect, environment }) {
   const [hovered, setHovered] = useState(false)
 
   const isViolation = ship.isViolation
-  const color    = isViolation ? '#ff2d55' : RISK_COLORS[ship.risk]
+  const color    = isViolation ? '#ff0000' : RISK_COLORS[ship.risk]
   const threeCol = useMemo(() => new THREE.Color(color), [color])
   const isHigh   = ship.risk === 'HIGH' || isViolation
   const size     = isViolation ? 0.032 : isHigh ? 0.026 : ship.risk === 'MEDIUM' ? 0.018 : 0.013
 
-  // STABLE position: computed once per ship id/coords, never re-computed on unrelated renders
-  const pos = useMemo(() => {
-    const { lat, lng } = validateCoords(ship.lat, ship.lng)
-    return latLngToVec3(lat, lng, 1.025)
-  }, [ship.id, ship.lat, ship.lng]) // eslint-disable-line react-hooks/exhaustive-deps
+  // 1:1 Mapping: Pre-calculate stable position once (No drift)
+  const pos = useMemo(() => latLngToVec3(ship.lat, ship.lng), [ship.lat, ship.lng])
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
@@ -155,14 +165,8 @@ function ShipMarker({ ship, onSelect, environment }) {
       const sc = 1 + Math.sin(t * speed) * amp
       ref.current.scale.setScalar(sc)
 
-      // Sea Condition Bobbing
-      if (ship.env && environment?.seaEnabled) {
-        const seaAmp = ship.env.seaState === 'Rough' ? 0.025 : ship.env.seaState === 'Moderate' ? 0.012 : 0.003
-        const seaSpeed = ship.env.seaState === 'Rough' ? 3.5 : ship.env.seaState === 'Moderate' ? 2.0 : 1.0
-        ref.current.position.y = Math.sin(t * seaSpeed + ship.id.length) * seaAmp
-      } else {
-        ref.current.position.y = 0
-      }
+      // Sea Condition Bobbing (Removed drift-causing logic, now always 0)
+      ref.current.position.y = 0
     }
     if (ringRef.current && isHigh) {
       const ringSpeed = isViolation ? 2.5 : 1.5
@@ -179,23 +183,22 @@ function ShipMarker({ ship, onSelect, environment }) {
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
     >
-      {/* Core glow sphere */}
+      {/* 3D Point: Stable and locked to its lat/lng position (Zero Offset) */}
       <mesh ref={ref}>
-        <sphereGeometry args={[size, 10, 10]} />
-        <meshStandardMaterial color={threeCol} emissive={threeCol} emissiveIntensity={hovered ? 4.5 : (isViolation ? 5.0 : isHigh ? 3.2 : 1.9)} toneMapped={false} />
+        <sphereGeometry args={[size * 0.8, 16, 16]} />
+        <meshStandardMaterial 
+          color={color} 
+          emissive={color} 
+          emissiveIntensity={hovered ? 2.5 : (isViolation ? 3.0 : 1.2)} 
+          toneMapped={false} 
+        />
       </mesh>
 
-      {/* Spike (vertical pin) */}
-      <mesh>
-        <coneGeometry args={[size * 0.38, size * 4, 6]} />
-        <meshStandardMaterial color={threeCol} emissive={threeCol} emissiveIntensity={1.2} transparent opacity={0.55} toneMapped={false} />
-      </mesh>
-
-      {/* Pulse ring for HIGH/Violation */}
-      {isHigh && (
-        <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[size * 1.0, size * (isViolation ? 2.5 : 1.8), 28]} />
-          <meshBasicMaterial color={threeCol} transparent opacity={0.7} side={THREE.DoubleSide} toneMapped={false} />
+      {/* Subtle pulse ring ONLY for high risk/violation (not a massive aura) */}
+      {(isHigh || hovered) && (
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[size * 1.2, size * (isViolation ? 2.5 : 1.8), 32]} />
+          <meshBasicMaterial color={color} transparent opacity={0.6} side={THREE.DoubleSide} toneMapped={false} />
         </mesh>
       )}
 
@@ -203,27 +206,12 @@ function ShipMarker({ ship, onSelect, environment }) {
       {hovered && (
         <Html distanceFactor={4} style={{ pointerEvents: 'none', transform: 'translateX(-50%)' }}>
           <div style={{
-            background: 'rgba(4,8,20,0.97)', border: `1px solid ${color}55`,
-            borderRadius: '8px', padding: '9px 13px',
-            fontFamily: 'Space Grotesk, sans-serif', whiteSpace: 'nowrap',
-            boxShadow: `0 6px 28px ${color}33, 0 0 0 1px ${color}22`,
+            background: 'rgba(4,8,20,0.95)', border: `1px solid #ff0000aa`,
+            borderRadius: '2px', padding: '4px 8px',
+            fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap',
+            boxShadow: `0 4px 15px rgba(255,0,0,0.25)`,
           }}>
-            <div style={{ color, fontWeight: 700, fontSize: '12px' }}>
-              {isViolation && <span style={{ marginRight: 6 }}>⚠</span>}
-              {ship.vessel_name}
-            </div>
-            <div style={{ color: '#7a95b8', fontSize: '10px', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>
-              {ship.id} · {ship.vessel_type}
-            </div>
-            {isViolation && (
-              <div style={{ color: '#ff2d55', fontSize: '10px', fontWeight: 800, marginTop: 4, letterSpacing: 1 }}>
-                ZONE VIOLATION: {ship.violatedZoneName}
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: '4px', marginTop: '5px' }}>
-              <span style={{ background: `${color}22`, color, padding: '1px 6px', borderRadius: '3px', fontSize: '9px', fontWeight: 700 }}>{ship.risk}</span>
-              <span style={{ background: 'rgba(0,212,255,0.1)', color: '#00d4ff', padding: '1px 6px', borderRadius: '3px', fontSize: '9px' }}>AIS:{ship.ais_status}</span>
-            </div>
+            <div style={{ color: '#ff0000', fontWeight: 700, fontSize: '10px', letterSpacing: '0.5px' }}>{ship.vessel_name}</div>
           </div>
         </Html>
       )}
@@ -232,8 +220,35 @@ function ShipMarker({ ship, onSelect, environment }) {
 }
 
 /* ── Globe Scene ── */
-function GlobeScene({ ships, onSelectShip, environment }) {
+function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState, visible }) {
   const globeRef = useRef()
+  const { camera } = useThree()
+  const [diving, setDiving] = useState(false)
+  const [targetPoint, setTargetPoint] = useState(null)
+
+  // Handle ship selection with a "Dive" animation
+  const handleSelect = useCallback((ship) => {
+    const vec = latLngToVec3(ship.lat, ship.lng, 1.05)
+    setTargetPoint(vec)
+    setDiving(true)
+    
+    // Smooth transition hand-off to Leaflet
+    setTimeout(() => {
+      onViewChange({ center: [ship.lat, ship.lng], zoom: 8 })
+      setDiving(false)
+    }, 1200)
+
+    onSelectShip(ship)
+  }, [onSelectShip, onViewChange])
+
+  useFrame((state, delta) => {
+    if (diving && targetPoint) {
+      // Dive camera toward the target point
+      camera.position.lerp(targetPoint, 0.05)
+      camera.lookAt(0, 0, 0)
+    }
+  })
+  const controlsRef = useRef()
 
   const isNight = environment?.time === 'night'
 
@@ -246,42 +261,78 @@ function GlobeScene({ ships, onSelectShip, environment }) {
   return (
     <>
       <color attach="background" args={['#000000']} />
-      <ambientLight intensity={isNight ? 0.15 : 0.6} color={isNight ? "#4466ff" : "#ffffff"} />
-      {/* Primary Sun Light for Dramatic Day/Night effect */}
+      <ambientLight intensity={isNight ? 0.2 : 0.8} color={isNight ? "#4466ff" : "#ffffff"} />
+      
+      {/* Primary Light (Sun) */}
       <directionalLight 
-        position={isNight ? [-8, -2, -4] : [8, 4, 6]} 
-        intensity={isNight ? 0.4 : 3.0} 
+        position={isNight ? [-10, -2, -6] : [10, 5, 8]} 
+        intensity={isNight ? 0.6 : 3.5} 
         color={isNight ? "#99bbff" : "#ffffff"} 
       />
+
+      {/* Backlight / Rim Light for Silhouette */}
+      <pointLight position={[-15, 0, -10]} intensity={2} color="#3b82f6" />
+      
       {/* Soft fill light */}
-      <directionalLight position={[-10, -2, -6]} intensity={isNight ? 0.1 : 0.3} color="#6688aa" />
+      <directionalLight position={[-10, 0, 10]} intensity={0.5} color="#ffffff" />
 
       {/* Replacing subtle stars with the massive skyMap sphere placed in EarthMesh */}
 
-      <Suspense fallback={<EarthFallback globeRef={globeRef} />}>
-        <EarthMesh globeRef={globeRef} />
-      </Suspense>
+        <Suspense fallback={<EarthFallback globeRef={globeRef} />}>
+          <EarthMesh globeRef={globeRef} />
+          
+          {/* Ship markers — NOW children of globe group, so they rotate WITH it */}
+          {validShips.map(ship => (
+            <ShipMarker key={ship.id} ship={ship} onSelect={handleSelect} environment={environment} />
+          ))}
+        </Suspense>
 
-      {/* Restricted Zone Outlines on Sphere */}
-      <ZoneOutlines />
-
-      {/* Ship markers — NOT children of globe group, so they don't rotate with it */}
-      {validShips.map(ship => (
-        <ShipMarker key={ship.id} ship={ship} onSelect={onSelectShip} environment={environment} />
-      ))}
+        {/* Restricted Zone Outlines on Sphere */}
+        <ZoneOutlines />
 
       <OrbitControls
+        ref={controlsRef}
         makeDefault // Ensure it syncs optimally with the canvas
         enablePan={false}
         enableZoom={true}
         minDistance={1.15}
         maxDistance={4.5}
-        autoRotate={true}
-        autoRotateSpeed={0.2} // Slower, more majestic rotation
+        autoRotate={false}
+        autoRotateSpeed={0} 
+        minPolarAngle={Math.PI / 4} // Prevent looking directly at poles for stability
+        maxPolarAngle={Math.PI - Math.PI / 4}
         enableDamping={true}
-        dampingFactor={0.03} // Extremely smooth, continuous inertia
-        rotateSpeed={0.35} // Smooth, heavier drag feel
-        zoomSpeed={0.5} // Slows down scroll wheel stepping for a fluid zoom effect
+        dampingFactor={0.06} // Smooth manual movement
+        rotateSpeed={0.5} 
+        zoomSpeed={0.6} 
+        onChange={(e) => {
+          if (!controlsRef.current) return
+          const dist = controlsRef.current.object.position.length()
+          
+          // If zoomed in close enough, switch to 2D Map (ONLY if currently visible to prevent loops)
+          if (visible && dist < 1.35 && onViewChange) {
+            const pos = controlsRef.current.object.position.clone()
+            
+            // CRITICAL: Account for Globe Rotation
+            if (globeRef.current) {
+              // Apply Inverse Rotation of the globe to the camera position to get LOCAL coordinates
+              pos.applyQuaternion(globeRef.current.quaternion.clone().invert())
+            }
+
+            const r = pos.length()
+            const phi = Math.acos(pos.y / r)
+            const theta = Math.atan2(pos.z, -pos.x)
+            
+            const lat = 90 - (phi * 180 / Math.PI)
+            let lng = (theta * 180 / Math.PI) - 180
+            
+            // Normalize lng to [-180, 180]
+            while (lng < -180) lng += 360
+            while (lng > 180) lng -= 360
+            
+            onViewChange({ center: [lat, lng], zoom: 10 })
+          }
+        }}
       />
     </>
   )
@@ -290,48 +341,41 @@ function GlobeScene({ ships, onSelectShip, environment }) {
 /* ── Legend ── */
 function Legend({ ships }) {
   const violations = ships.filter(s => s.isViolation).length
+  const style = {
+    position: 'absolute', top: 12, left: 12, zIndex: 10,
+    background: 'rgba(4,10,24,0.7)', padding: '10px 14px',
+    borderRadius: '6px', border: '1px solid rgba(0,212,255,0.2)',
+    fontFamily: 'var(--font-mono)', minWidth: '170px'
+  }
   return (
-    <div style={{
-      position: 'absolute', top: 16, left: 16, zIndex: 10,
-      background: 'rgba(4,8,20,0.90)', border: '1px solid rgba(0,212,255,0.16)',
-      borderRadius: '9px', padding: '12px 16px',
-      fontFamily: 'Space Grotesk, sans-serif', backdropFilter: 'blur(14px)',
-    }}>
-      <div style={{ color: '#00d4ff', fontWeight: 700, fontSize: '11px', letterSpacing: '2px', marginBottom: '8px' }}>
-        🌍 LIVE GLOBE · SHIP POSITIONS
+    <div style={style}>
+      <div style={{ color: '#00d4ff', fontSize: '10px', fontWeight: 900, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
+         LIVE GLOBE · SHIP POSITIONS
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ff0000', fontSize: '9px', fontWeight: 900, marginBottom: '10px', letterSpacing: '0.5px' }}>
+        <span>ZONE VIOLATIONS</span>
+        <span>{violations}</span>
       </div>
       
-      {violations > 0 && (
-        <div style={{ marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid rgba(255,45,85,0.2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff2d55', boxShadow: '0 0 10px #ff2d55' }} className="violation-pulse-dot" />
-            <span style={{ fontSize: 11, color: '#ff2d55', fontWeight: 800, letterSpacing: 0.5 }}>ZONE VIOLATIONS</span>
-            <span style={{ marginLeft: 'auto', fontSize: 11, color: '#ff2d55', fontWeight: 800 }}>{violations}</span>
-          </div>
-          <style>{`
-            @keyframes dotPulse { 0% { opacity: 1 } 50% { opacity: 0.3 } 100% { opacity: 1 } }
-            .violation-pulse-dot { animation: dotPulse 1s infinite; }
-          `}</style>
-        </div>
-      )}
-
-      {[['HIGH','#ff2d55'],['MEDIUM','#ffb830'],['LOW','#00e676']].map(([r,c]) => (
-        <div key={r} style={{ display:'flex', alignItems:'center', gap: 8, marginBottom: 5 }}>
-          <div style={{ width:10, height:10, borderRadius:'50%', background:c, boxShadow:`0 0 8px ${c}, 0 0 16px ${c}55` }} />
-          <span style={{ fontSize:11, color:c, fontWeight:500 }}>{r}</span>
-          <span style={{ marginLeft:'auto', fontSize:11, color:'#3d5478', fontFamily:'JetBrains Mono,monospace' }}>
-            {ships.filter(s=>s.risk===r && !s.isViolation).length}
-          </span>
+      {[
+        { label: 'HIGH', color: '#ff0000', count: ships.filter(s => s.risk === 'HIGH').length },
+        { label: 'MEDIUM', color: '#ffb830', count: ships.filter(s => s.risk === 'MEDIUM').length },
+        { label: 'LOW', color: '#00e676', count: ships.filter(s => s.risk === 'LOW').length }
+      ].map(r => (
+        <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontSize: '9px' }}>
+          <span style={{ color: r.color, fontWeight: 700 }}>● {r.label}</span>
+          <span style={{ color: '#fff', opacity: 0.6 }}>{r.count}</span>
         </div>
       ))}
-      <div style={{ marginTop:8, paddingTop:8, borderTop:'1px solid rgba(0,212,255,0.1)', fontSize:10, color:'#3d5478', lineHeight:1.5 }}>
+
+      <div style={{ marginTop: '12px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '8px', color: '#7a95b8', lineHeight: 1.4 }}>
         DRAG TO ROTATE · SCROLL TO ZOOM<br/>CLICK MARKER FOR DETAILS
       </div>
     </div>
   )
 }
 
-export default function Globe3D({ ships, onSelectShip, environment }) {
+export default function Globe3D({ ships, onSelectShip, environment, onViewChange, viewState, visible }) {
   return (
     <div style={{ width:'100%', height:'100%', position:'relative' }}>
       <Canvas
@@ -345,10 +389,26 @@ export default function Globe3D({ ships, onSelectShip, environment }) {
         }}
       >
         <Suspense fallback={null}>
-          <GlobeScene ships={ships} onSelectShip={onSelectShip} environment={environment} />
+          <GlobeScene 
+            ships={ships} 
+            onSelectShip={onSelectShip} 
+            environment={environment} 
+            onViewChange={onViewChange}
+            viewState={viewState}
+            visible={visible}
+          />
         </Suspense>
       </Canvas>
       <Legend ships={ships} />
+      {/* Bottom Status Bar */}
+      <div style={{
+        position: 'absolute', bottom: 12, left: 12, zIndex: 10,
+        background: 'rgba(0,10,20,0.8)', padding: '6px 14px', borderRadius: '4px',
+        border: '1px solid rgba(0,212,255,0.3)', fontFamily: 'var(--font-mono)',
+        fontSize: '10px', color: '#00d4ff', letterSpacing: '1px'
+      }}>
+        ● THREE.JS 3D GLOBE · WEBGL ACCELERATED
+      </div>
     </div>
   )
 }
