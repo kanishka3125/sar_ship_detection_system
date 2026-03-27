@@ -237,10 +237,10 @@ function ClusterMarker({ cluster, isExpanded, onToggleExpanded }) {
         const localPos = new THREE.Vector3().subVectors(detPos, pos)
         
         return (
-          <meshey key={idx} position={localPos}>
+          <mesh key={idx} position={localPos}>
             <sphereGeometry args={[0.003, 8, 8]} />
             <meshBasicMaterial color="white" toneMapped={false} />
-          </meshey>
+          </mesh>
         )
       })}
     </group>
