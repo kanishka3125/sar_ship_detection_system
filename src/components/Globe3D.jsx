@@ -27,40 +27,35 @@ function latLngToVec3(lat, lng, radius = 1.025) {
 
 /* ── Realistic Earth with Satellite Textures, Clouds & City Lights ── */
 function EarthMesh() {
-  const [dayMap, bumpMap, specMap, skyMap] = useTexture([
+  const [dayMap, skyMap] = useTexture([
     '/models/earth_color_vibrant.jpg',
-    '/models/earth_topology_vibrant.png',
-    '/models/earth_water_vibrant.png',
     '/models/night_sky.png'
   ])
 
   return (
     <group rotation={[0, -Math.PI / 2, 0]}>
-      {/* 1. Main Earth Sphere (Terrain + Oceans) */}
-      <mesh castShadow receiveShadow>
+      {/* 1. Main Earth Sphere — MeshBasicMaterial = full brightness, no shadow */}
+      <mesh>
         <sphereGeometry args={[1, 128, 128]} />
-        <meshStandardMaterial
-          map={dayMap}
-          bumpMap={bumpMap}
-          bumpScale={0.15} 
-          roughnessMap={specMap}
-          roughness={0.9} 
-          metalness={0.15}
-          emissive="#000511" 
-          emissiveIntensity={0.4}
-        />
+        <meshBasicMaterial map={dayMap} />
       </mesh>
 
-      {/* 3. Milky Way Sky Background */}
+      {/* 2. Milky Way Sky Background */}
       <mesh scale={[150, 150, 150]}>
         <sphereGeometry args={[1, 64, 64]} />
         <meshBasicMaterial map={skyMap} side={THREE.BackSide} />
       </mesh>
 
-      {/* 4. Atmosphere Base Glow */}
+      {/* 3. Atmosphere Glow */}
       <mesh>
-        <sphereGeometry args={[1.015, 64, 64]} />
-        <meshBasicMaterial color="#a6c8ff" transparent opacity={0.12} side={THREE.FrontSide} blending={THREE.AdditiveBlending} />
+        <sphereGeometry args={[1.02, 64, 64]} />
+        <meshBasicMaterial color="#4da6ff" transparent opacity={0.18} side={THREE.FrontSide} blending={THREE.AdditiveBlending} />
+      </mesh>
+
+      {/* 4. Outer halo for depth */}
+      <mesh>
+        <sphereGeometry args={[1.06, 64, 64]} />
+        <meshBasicMaterial color="#1a6bcc" transparent opacity={0.07} side={THREE.FrontSide} blending={THREE.AdditiveBlending} />
       </mesh>
     </group>
   )
@@ -240,12 +235,12 @@ function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState,
   return (
     <>
       <color attach="background" args={['#010206']} />
-      <ambientLight intensity={isNight ? 0.2 : 1.2} color={isNight ? "#112244" : "#ffffff"} />
+      <ambientLight intensity={isNight ? 0.3 : 2.2} color={isNight ? "#112244" : "#ffffff"} />
       
       {/* Primary Sun Light - Pure White for realistic rendering */}
       <directionalLight 
         position={isNight ? [-10, -5, -10] : [15, 10, 12]} 
-        intensity={isNight ? 0.3 : 6.0} 
+        intensity={isNight ? 0.3 : 9.0} 
         color="#ffffff" 
         castShadow
       />
@@ -332,7 +327,7 @@ export default function Globe3D({ ships, onSelectShip, environment, onViewChange
           alpha: false, 
           powerPreference: 'high-performance',
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.4 // Increased for vibrance
+          toneMappingExposure: 1.9 // Bright, vivid globe
         }}
       >
         <fog attach="fog" args={['#040f1e', 1.5, 5]} /> {/* Cinematic depth illusion (scaled for R3F radius=1) */}
