@@ -2,8 +2,8 @@ import { useEffect, Component } from 'react'
 import { formatLocalTime } from '../utils/timeUtils'
 import ShipViewer from './ShipModel.jsx'
 
-const RISK_COLORS = { HIGH: '#ff2d55', MEDIUM: '#ffb830', LOW: '#00e676' }
-const AIS_COLORS = { ABSENT: '#ff2d55', SPOOFED: '#ffb830', PRESENT: '#00e676' }
+const RISK_COLORS = { HIGH: 'var(--surface-light)', MEDIUM: 'var(--text-secondary)', LOW: 'var(--text-dim)' }
+const AIS_COLORS = { ABSENT: 'var(--text-secondary)', SPOOFED: 'var(--accent)', PRESENT: 'var(--accent)' }
 
 /**
  * Determine which GLB model to load for a given ship.
@@ -18,8 +18,8 @@ function getModelType(ship) {
 /* ── Intelligence Profile Field ── */
 function Field({ label, value, color, mono }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <span style={{ fontSize: 9, letterSpacing: '1.5px', color: 'var(--text-dim)', fontWeight: 600 }}>{label}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span style={{ fontSize: 9, letterSpacing: '1px', color: 'var(--text-dim)', fontWeight: 600, textTransform: 'uppercase' }}>{label}</span>
       <span style={{
         fontSize: mono ? 12 : 13,
         fontFamily: mono ? 'var(--font-mono)' : 'var(--font-main)',
@@ -32,7 +32,7 @@ function Field({ label, value, color, mono }) {
 /* ── Detection confidence bar ── */
 function ConfidenceBar({ value }) {
   const pct = Math.round(value * 100)
-  const color = pct >= 85 ? '#ff2d55' : pct >= 70 ? '#ffb830' : '#00e676'
+  const color = pct >= 85 ? '#EF4444' : pct >= 70 ? '#F59E0B' : '#10B981'
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -44,8 +44,7 @@ function ConfidenceBar({ value }) {
       <div style={{ height: 5, background: 'rgba(127,127,127,0.12)', borderRadius: 3, overflow: 'hidden' }}>
         <div style={{
           width: `${pct}%`, height: '100%', borderRadius: 3,
-          background: `linear-gradient(90deg, ${color}88, ${color})`,
-          boxShadow: `0 0 12px ${color}`,
+          background: color,
           transition: 'width 0.8s ease',
         }} />
       </div>
@@ -85,30 +84,30 @@ export default function ShipModal({ ship, environment, onClose }) {
         borderRadius: 14,
         display: 'flex',
         overflow: 'hidden',
-        boxShadow: `0 0 0 1px ${color}18, 0 28px 100px ${color}18, 0 0 80px rgba(0,0,0,0.7)`,
+        boxShadow: `0 0 1px ${color}18, 0 28px 100px ${color}18, 0 0 80px rgba(0,0,0,0.7)`,
         animation: 'modalOpen 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
       }}>
 
         {/* ── Left: 3D Canvas (60%) ── */}
         <div style={{
           flex: '0 0 60%',
-          background: `radial-gradient(ellipse at 50% 50%, rgba(4,10,24,0.3) 0%, rgba(2,5,10,0.95) 100%)`,
-          borderRight: `1px solid ${color}22`,
+          background: `var(--bg-primary)`,
+          borderRight: `1px solid var(--border-color)`,
           display: 'flex', flexDirection: 'column',
           position: 'relative'
         }}>
           {/* Panel header */}
             <div style={{
-            padding: '14px 18px',
+            padding: '16px 20px',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            borderBottom: `1px solid ${color}22`, flexShrink: 0,
-            background: `${color}07`,
+            borderBottom: `1px solid var(--border-color)`, flexShrink: 0,
+            background: `rgba(0,0,0,0.15)`,
             zIndex: 10
           }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '2px', color }}>◈ 3D VESSEL PROFILE</div>
-              <div style={{ fontSize: 10, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
-                {ship.vessel_type.toUpperCase()} · {ship.length_m}M · IMO REGISTERED
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '2px', color: 'var(--text-primary)' }}>VESSEL PROFILE</div>
+              <div style={{ fontSize: 9, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', marginTop: 2, opacity: 0.8 }}>
+                {ship.vessel_type.toUpperCase()} · {ship.length_m}M
               </div>
             </div>
             <button
@@ -128,36 +127,27 @@ export default function ShipModal({ ship, environment, onClose }) {
           {/* New Dynamic GLB Ship Viewer (Includes its own Canvas) */}
           <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
             <ShipViewer type={modelType} ship={ship} />
-            <div style={{
-              position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)',
-              fontSize: 10, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)',
-              background: 'rgba(4,8,15,0.75)', padding: '3px 14px', borderRadius: 12,
-              backdropFilter: 'blur(6px)', border: '1px solid rgba(0,212,255,0.07)',
-              whiteSpace: 'nowrap', zIndex: 10, pointerEvents: 'none'
-            }}>
-              DRAG TO ROTATE · SCROLL TO ZOOM
-            </div>
+
           </div>
         </div>
 
         {/* ── Right: Intelligence Profile (40%) ── */}
         <div style={{ flex: '0 0 40%', overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'var(--bg-card)' }}>
           {/* Header */}
-          <div style={{ padding: '18px 22px', borderBottom: `1px solid ${color}22`, background: `${color}08`, flexShrink: 0 }}>
+          <div style={{ padding: '20px 24px', borderBottom: `1px solid var(--border-color)`, background: `rgba(0,0,0,0.15)`, flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div>
-                <div style={{ fontSize: 21, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: 1, lineHeight: 1.1 }}>
+                <div style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: 0.5, lineHeight: 1.1 }}>
                   {ship.vessel_name}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
-                  {ship.id} · MMSI {ship.mmsi} · FLAG: {ship.flag}
+                <div style={{ fontSize: 10, color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', marginTop: 5 }}>
+                  {ship.id} · MMSI {ship.mmsi}
                 </div>
               </div>
               <div style={{
-                background: `${color}1e`, color, padding: '7px 16px',
-                borderRadius: 6, fontSize: 12, fontWeight: 700, letterSpacing: '2px',
-                border: `1px solid ${color}55`, flexShrink: 0,
-                boxShadow: `0 0 18px ${color}1a`,
+                background: `rgba(201, 214, 207, 0.05)`, color: 'var(--text-primary)', padding: '6px 14px',
+                borderRadius: 'var(--radius-sm)', fontSize: 11, fontWeight: 600, letterSpacing: '1px',
+                border: `1px solid var(--border-color)`, flexShrink: 0,
               }}>
                 {ship.risk} RISK
               </div>
@@ -173,7 +163,7 @@ export default function ShipModal({ ship, environment, onClose }) {
             <Field label="HEADING" value={`${ship.heading}°`} mono />
             <Field label="AIS STATUS" value={ship.ais_status} color={aisColor} mono />
             <Field label="ENVIRONMENT" value={`${ship.env?.icon} ${ship.env?.condition}`} />
-            <Field label="SEA STATE" value={ship.env?.seaState} color={ship.env?.seaState === 'Rough' ? '#ff9500' : 'var(--text-primary)'} />
+            <Field label="SEA STATE" value={ship.env?.seaState} color={ship.env?.seaState === 'Rough' ? '#F59E0B' : 'var(--text-primary)'} />
             <Field label="COORDINATES" value={`${ship.lat.toFixed(4)}°N  ${ship.lng.toFixed(4)}°E`} mono />
             <Field label="LAST SEEN" value={formatLocalTime(ship.last_seen)} mono />
           </div>

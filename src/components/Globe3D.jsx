@@ -6,7 +6,7 @@ import * as THREE from 'three'
 import { validateCoords } from '../utils/timeUtils'
 import { RESTRICTED_ZONES } from '../data/zones'
 
-const RISK_COLORS = { HIGH: '#ff0000', MEDIUM: '#ffb830', LOW: '#00e676' }
+const RISK_COLORS = { HIGH: 'var(--danger)', MEDIUM: 'var(--warning)', LOW: 'var(--text-dim)' }
 
 /* Convert lat/lng → stable 3D Vector3 on unit sphere */
 function latLngToVec3(lat, lng, radius = 1.025) {
@@ -25,7 +25,7 @@ function latLngToVec3(lat, lng, radius = 1.025) {
   return new THREE.Vector3(x, y, z)
 }
 
-/* ── Realistic Earth with Satellite Textures & Clouds ── */
+/* ── Realistic Earth with Satellite Textures, Clouds & City Lights ── */
 function EarthMesh() {
   const [dayMap, bumpMap, specMap, skyMap] = useTexture([
     '/models/earth_color_vibrant.jpg',
@@ -34,56 +34,33 @@ function EarthMesh() {
     '/models/night_sky.png'
   ])
 
-  // Enhance texture sharpness and color accuracy
-  useMemo(() => {
-    dayMap.colorSpace = THREE.SRGBColorSpace
-    skyMap.colorSpace = THREE.SRGBColorSpace
-    ;[dayMap, bumpMap, specMap].forEach(t => {
-      t.anisotropy = 16
-    })
-  }, [dayMap, bumpMap, specMap, skyMap])
-
-  // Auto-rotation disabled for professional aesthetic
-
   return (
     <group rotation={[0, -Math.PI / 2, 0]}>
       {/* 1. Main Earth Sphere (Terrain + Oceans) */}
-      <mesh>
+      <mesh castShadow receiveShadow>
         <sphereGeometry args={[1, 128, 128]} />
         <meshStandardMaterial
           map={dayMap}
           bumpMap={bumpMap}
-          bumpScale={0.08}
+          bumpScale={0.15} 
           roughnessMap={specMap}
-          roughness={1} 
-          metalness={0.1}
-          emissive="#112233" // Subtle oceanic depth
+          roughness={0.9} 
+          metalness={0.15}
+          emissive="#000511" 
           emissiveIntensity={0.4}
         />
       </mesh>
 
       {/* 3. Milky Way Sky Background */}
-      <mesh scale={[100, 100, 100]}>
+      <mesh scale={[150, 150, 150]}>
         <sphereGeometry args={[1, 64, 64]} />
         <meshBasicMaterial map={skyMap} side={THREE.BackSide} />
       </mesh>
 
-      {/* 4. Atmosphere Base Glow (Tight) */}
+      {/* 4. Atmosphere Base Glow */}
       <mesh>
-        <sphereGeometry args={[1.005, 64, 64]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.12} side={THREE.FrontSide} blending={THREE.AdditiveBlending} />
-      </mesh>
-
-      {/* 5. Prominent Blue Halo */}
-      <mesh scale={[1.09, 1.09, 1.09]}>
-        <sphereGeometry args={[1, 64, 64]} />
-        <meshBasicMaterial color="#2266ff" transparent opacity={0.25} side={THREE.BackSide} blending={THREE.AdditiveBlending} depthWrite={false} />
-      </mesh>
-      
-      {/* 6. Soft Outer Rim */}
-      <mesh scale={[1.12, 1.12, 1.12]}>
-        <sphereGeometry args={[1, 64, 64]} />
-        <meshBasicMaterial color="#1a44bb" transparent opacity={0.10} side={THREE.BackSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+        <sphereGeometry args={[1.015, 64, 64]} />
+        <meshBasicMaterial color="#a6c8ff" transparent opacity={0.12} side={THREE.FrontSide} blending={THREE.AdditiveBlending} />
       </mesh>
     </group>
   )
@@ -91,22 +68,11 @@ function EarthMesh() {
 
 /* ── Fallback plain globe ── */
 function EarthFallback() {
-  // Auto-rotation disabled
   return (
-    <group rotation={[0, -Math.PI / 2, 0]}>
-      <mesh>
-        <sphereGeometry args={[1, 64, 64]} />
-        <meshPhongMaterial color="#0d3060" emissive="#040f1e" specular="#226688" shininess={15} />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[1.001, 36, 18]} />
-        <meshBasicMaterial color="#00d4ff" wireframe transparent opacity={0.04} />
-      </mesh>
-      <mesh>
-        <sphereGeometry args={[1.08, 32, 32]} />
-        <meshBasicMaterial color="#1155bb" transparent opacity={0.07} side={THREE.BackSide} />
-      </mesh>
-    </group>
+    <mesh>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshStandardMaterial color="#0d3060" />
+    </mesh>
   )
 }
 
@@ -149,9 +115,8 @@ function ShipMarker({ ship, onSelect, environment }) {
 
   const isViolation = ship.isViolation
   const color    = isViolation ? '#ff0000' : RISK_COLORS[ship.risk]
-  const threeCol = useMemo(() => new THREE.Color(color), [color])
   const isHigh   = ship.risk === 'HIGH' || isViolation
-  const size     = isViolation ? 0.018 : isHigh ? 0.014 : ship.risk === 'MEDIUM' ? 0.010 : 0.007
+  const size     = isViolation ? 0.012 : isHigh ? 0.009 : 0.006 // Smaller, more professional
 
   // 1:1 Mapping: Pre-calculate stable position once (No drift)
   const pos = useMemo(() => latLngToVec3(ship.lat, ship.lng), [ship.lat, ship.lng])
@@ -159,13 +124,10 @@ function ShipMarker({ ship, onSelect, environment }) {
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (ref.current) {
-      const speed = isViolation ? 5.5 : isHigh ? 3.5 : 2.2
-      const amp   = isViolation ? 0.55 : isHigh ? 0.38 : 0.14
+      const speed = isViolation ? 4.5 : isHigh ? 2.5 : 1.5
+      const amp   = isViolation ? 0.3 : isHigh ? 0.2 : 0.08
       const sc = 1 + Math.sin(t * speed) * amp
       ref.current.scale.setScalar(sc)
-
-      // Sea Condition Bobbing (Removed drift-causing logic, now always 0)
-      ref.current.position.y = 0
     }
     if (ringRef.current && isHigh) {
       const ringSpeed = isViolation ? 2.5 : 1.5
@@ -222,32 +184,50 @@ function ShipMarker({ ship, onSelect, environment }) {
 function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState, visible }) {
   const globeRef = useRef()
   const { camera } = useThree()
-  const [diving, setDiving] = useState(false)
-  const [targetPoint, setTargetPoint] = useState(null)
+  const controlsRef = useRef()
+  
+  const [diveState, setDiveState] = useState(null)
 
-  // Handle ship selection with a "Dive" animation
+  // Handle ship selection with a cinematic "Dive" animation
   const handleSelect = useCallback((ship) => {
-    const vec = latLngToVec3(ship.lat, ship.lng, 1.05)
-    setTargetPoint(vec)
-    setDiving(true)
+    if (controlsRef.current) controlsRef.current.enabled = false
     
-    // Smooth transition hand-off to Leaflet
-    setTimeout(() => {
-      onViewChange({ center: [ship.lat, ship.lng], zoom: 8 })
-      setDiving(false)
-    }, 1200)
+    // Target slightly above the surface for an immersive Google Earth approach view
+    const endVec = latLngToVec3(ship.lat, ship.lng, 1.25)
+    
+    setDiveState({
+      startPos: camera.position.clone(),
+      endPos: endVec,
+      startTime: performance.now(),
+      duration: 1500, // 1.5s cinematic flight
+      ship: ship
+    })
 
     onSelectShip(ship)
-  }, [onSelectShip, onViewChange])
+  }, [onSelectShip, camera])
 
-  useFrame((state, delta) => {
-    if (diving && targetPoint) {
-      // Dive camera toward the target point
-      camera.position.lerp(targetPoint, 0.05)
-      camera.lookAt(0, 0, 0)
+  const easeInOutCubic = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+
+  useFrame((state) => {
+    if (diveState) {
+      const { startPos, endPos, startTime, duration, ship } = diveState
+      const elapsed = performance.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = easeInOutCubic(progress)
+      
+      // Interpolate along the arc for a smooth flight path
+      camera.position.lerpVectors(startPos, endPos, eased)
+      camera.lookAt(0, 0, 0) // Always keep Earth center perfectly focused
+
+      if (progress === 1) {
+        // Animation finished: trigger 2D map transition
+        // The App.jsx layer transitions will handle the cross-dissolve opacity
+        onViewChange({ center: [ship.lat, ship.lng], zoom: 8 })
+        if (controlsRef.current) controlsRef.current.enabled = true
+        setDiveState(null)
+      }
     }
   })
-  const controlsRef = useRef()
 
   const isNight = environment?.time === 'night'
 
@@ -259,21 +239,22 @@ function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState,
 
   return (
     <>
-      <color attach="background" args={['#000000']} />
-      <ambientLight intensity={isNight ? 0.2 : 0.8} color={isNight ? "#4466ff" : "#ffffff"} />
+      <color attach="background" args={['#010206']} />
+      <ambientLight intensity={isNight ? 0.2 : 1.2} color={isNight ? "#112244" : "#ffffff"} />
       
-      {/* Primary Light (Sun) */}
+      {/* Primary Sun Light - Pure White for realistic rendering */}
       <directionalLight 
-        position={isNight ? [-10, -2, -6] : [10, 5, 8]} 
-        intensity={isNight ? 0.6 : 3.5} 
-        color={isNight ? "#99bbff" : "#ffffff"} 
+        position={isNight ? [-10, -5, -10] : [15, 10, 12]} 
+        intensity={isNight ? 0.3 : 6.0} 
+        color="#ffffff" 
+        castShadow
       />
 
-      {/* Backlight / Rim Light for Silhouette */}
-      <pointLight position={[-15, 0, -10]} intensity={2} color="#3b82f6" />
+      {/* Earth Rim Light (Subtle atmospheric backlight) */}
+      <pointLight position={[-15, 2, -12]} intensity={isNight ? 1 : 4} color="#4da6ff" />
       
-      {/* Soft fill light */}
-      <directionalLight position={[-10, 0, 10]} intensity={0.5} color="#ffffff" />
+      {/* Soft indirect bounce */}
+      <directionalLight position={[-8, 4, 15]} intensity={0.5} color="#ffffff" />
 
       {/* Replacing subtle stars with the massive skyMap sphere placed in EarthMesh */}
 
@@ -339,42 +320,7 @@ function GlobeScene({ ships, onSelectShip, environment, onViewChange, viewState,
   )
 }
 
-/* ── Legend ── */
-function Legend({ ships }) {
-  const violations = ships.filter(s => s.isViolation).length
-  const style = {
-    position: 'absolute', top: 12, left: 12, zIndex: 10,
-    background: 'rgba(4,10,24,0.7)', padding: '10px 14px',
-    borderRadius: '6px', border: '1px solid rgba(0,212,255,0.2)',
-    fontFamily: 'var(--font-mono)', minWidth: '170px'
-  }
-  return (
-    <div style={style}>
-      <div style={{ color: '#00d4ff', fontSize: '10px', fontWeight: 900, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px', letterSpacing: '0.5px' }}>
-         LIVE GLOBE · SHIP POSITIONS
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#ff0000', fontSize: '9px', fontWeight: 900, marginBottom: '10px', letterSpacing: '0.5px' }}>
-        <span>ZONE VIOLATIONS</span>
-        <span>{violations}</span>
-      </div>
-      
-      {[
-        { label: 'HIGH', color: '#ff0000', count: ships.filter(s => s.risk === 'HIGH').length },
-        { label: 'MEDIUM', color: '#ffb830', count: ships.filter(s => s.risk === 'MEDIUM').length },
-        { label: 'LOW', color: '#00e676', count: ships.filter(s => s.risk === 'LOW').length }
-      ].map(r => (
-        <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px', fontSize: '9px' }}>
-          <span style={{ color: r.color, fontWeight: 700 }}>● {r.label}</span>
-          <span style={{ color: '#fff', opacity: 0.6 }}>{r.count}</span>
-        </div>
-      ))}
 
-      <div style={{ marginTop: '12px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '8px', color: '#7a95b8', lineHeight: 1.4 }}>
-        DRAG TO ROTATE · SCROLL TO ZOOM<br/>CLICK MARKER FOR DETAILS
-      </div>
-    </div>
-  )
-}
 
 export default function Globe3D({ ships, onSelectShip, environment, onViewChange, viewState, visible }) {
   return (
@@ -386,9 +332,10 @@ export default function Globe3D({ ships, onSelectShip, environment, onViewChange
           alpha: false, 
           powerPreference: 'high-performance',
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.1
+          toneMappingExposure: 1.4 // Increased for vibrance
         }}
       >
+        <fog attach="fog" args={['#040f1e', 1.5, 5]} /> {/* Cinematic depth illusion (scaled for R3F radius=1) */}
         <Suspense fallback={null}>
           <GlobeScene 
             ships={ships} 
@@ -400,16 +347,7 @@ export default function Globe3D({ ships, onSelectShip, environment, onViewChange
           />
         </Suspense>
       </Canvas>
-      <Legend ships={ships} />
-      {/* Bottom Status Bar */}
-      <div style={{
-        position: 'absolute', bottom: 12, left: 12, zIndex: 10,
-        background: 'rgba(0,10,20,0.8)', padding: '6px 14px', borderRadius: '4px',
-        border: '1px solid rgba(0,212,255,0.3)', fontFamily: 'var(--font-mono)',
-        fontSize: '10px', color: '#00d4ff', letterSpacing: '1px'
-      }}>
-        ● THREE.JS 3D GLOBE · WEBGL ACCELERATED
-      </div>
+
     </div>
   )
 }

@@ -5,26 +5,25 @@ const styles = {
     borderTop: '1px solid var(--border-color)',
     display: 'flex', alignItems: 'center', padding: '0 20px',
     flexShrink: 0, overflowX: 'auto',
-    boxShadow: '0 -1px 0 var(--border-color)',
+    boxShadow: '0 -4px 12px rgba(0,0,0,0.1)',
   },
   item: {
     display: 'flex', alignItems: 'center', gap: '10px',
     padding: '0 18px', borderRight: '1px solid var(--border-color)', flexShrink: 0,
   },
   dot: (color) => ({
-    width: '7px', height: '7px', borderRadius: '50%',
-    background: color, boxShadow: `0 0 7px ${color}`,
-    flexShrink: 0, animation: 'live-blink 2s ease-in-out infinite',
+    width: '5px', height: '5px', borderRadius: '50%',
+    background: color, flexShrink: 0,
+    opacity: 0.8,
   }),
   val: (color) => ({
-    fontSize: '17px', fontWeight: 700, fontFamily: 'var(--font-mono)', color, lineHeight: 1,
+    fontSize: '16px', fontWeight: 600, fontFamily: 'var(--font-mono)', color, lineHeight: 1,
   }),
-  label: { fontSize: '9px', color: 'var(--text-secondary)', letterSpacing: '1.2px', lineHeight: 1.3 },
-  badge: (color) => ({
-    padding: '3px 8px', background: `${color}14`, color,
-    border: `1px solid ${color}28`, borderRadius: '4px',
-    fontSize: '10px', fontFamily: 'var(--font-mono)', fontWeight: 600,
-  }),
+  label: { 
+    fontSize: '8px', color: 'var(--text-secondary)', 
+    letterSpacing: '1px', lineHeight: 1.3, fontWeight: 500,
+    textTransform: 'uppercase'
+  },
 }
 
 export default function StatsBar({ ships, loiteringCount = 0 }) {
@@ -40,15 +39,13 @@ export default function StatsBar({ ships, loiteringCount = 0 }) {
     : 0
 
   const statItems = [
-    { label: 'TOTAL VESSELS', val: total,            color: '#00d4ff' },
-    { label: 'HIGH RISK',     val: high,             color: '#ff2d55' },
-    { label: 'MEDIUM RISK',   val: medium,           color: '#ffb830' },
-    { label: 'LOW RISK',      val: low,              color: '#00e676' },
-    { label: 'DARK VESSELS',  val: dark,             color: '#ff2d55' },
-    { label: 'AIS SPOOFED',   val: spoofed,          color: '#ffb830' },
-    { label: 'AIS VERIFIED',  val: present,          color: '#00e676' },
-    { label: 'LOITERING',     val: loiteringCount,   color: '#ffb830' },
-    { label: 'AVG CONFIDENCE',val: `${avgConf}%`,    color: '#4488ff' },
+    { label: 'TOTAL',         val: total,            color: 'var(--text-primary)' },
+    { label: 'HIGH RISK',     val: high,             color: 'var(--text-primary)' },
+    { label: 'MEDIUM RISK',   val: medium,           color: 'var(--text-secondary)' },
+    { label: 'LOW RISK',      val: low,              color: 'var(--text-dim)' },
+    { label: 'DARK VESSELS',  val: dark,             color: 'var(--text-primary)' },
+    { label: 'LOITERING',     val: loiteringCount,   color: 'var(--text-secondary)' },
+    { label: 'AVG CONFIDENCE',val: `${avgConf}%`,    color: 'var(--text-primary)' },
   ]
 
   return (
@@ -67,12 +64,7 @@ export default function StatsBar({ ships, loiteringCount = 0 }) {
           </div>
         </div>
       ))}
-      {/* System badges */}
-      <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px', paddingLeft: '16px', flexShrink: 0 }}>
-        <span style={styles.badge('#00d4ff')}>YOLOv8</span>
-        <span style={styles.badge('#4488ff')}>SENTINEL-1</span>
-        <span style={styles.badge('#00e676')}>AIS ACTIVE</span>
-      </div>
+
     </div>
   )
 }

@@ -8,9 +8,11 @@ const __dirname = path.dirname(__filename);
 const dir = path.join(__dirname, 'public', 'models');
 
 const files = [
-  { url: 'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg', name: 'earth_color_vibrant.jpg' },
-  { url: 'https://unpkg.com/three-globe/example/img/earth-topology.png', name: 'earth_topology_vibrant.png' },
-  { url: 'https://unpkg.com/three-globe/example/img/earth-water.png', name: 'earth_water_vibrant.png' }
+  { url: 'https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-blue-marble.jpg', name: 'earth_color_vibrant.jpg' },
+  { url: 'https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-topology.png', name: 'earth_topology_vibrant.png' },
+  { url: 'https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-water.png', name: 'earth_water_vibrant.png' },
+  { url: 'https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-night-lights.png', name: 'earth_night_lights.png' },
+  { url: 'https://raw.githubusercontent.com/vasturiano/three-globe/master/example/img/earth-clouds.png', name: 'earth_clouds.png' }
 ];
 
 async function download() {

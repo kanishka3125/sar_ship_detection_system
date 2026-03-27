@@ -5,47 +5,25 @@ import 'leaflet/dist/leaflet.css'
 import { validateCoords } from '../utils/timeUtils'
 import { RESTRICTED_ZONES } from '../data/zones'
 
-const RISK_COLORS = { HIGH: '#ff2d55', MEDIUM: '#ffb830', LOW: '#00e676' }
-const RISK_GLOW = { HIGH: 'rgba(255, 45, 85, 0.4)', MEDIUM: 'rgba(255, 184, 48, 0.3)', LOW: 'rgba(0, 230, 118, 0.3)' }
+const RISK_COLORS = { HIGH: 'var(--danger)', MEDIUM: 'var(--warning)', LOW: '#94a3b8' }
 
 /* Build clean, professional CSS-animated DivIcon per ship */
 function makeShipIcon(ship, environment) {
   const isViolation = ship.isViolation
-  const color = isViolation ? '#ff2d55' : RISK_COLORS[ship.risk]
-  const glow = RISK_GLOW[ship.risk] // Define glow here
-  const isHigh = ship.risk === 'HIGH' || isViolation
-  const isMed = ship.risk === 'MEDIUM'
-  const size = isViolation ? 18 : isHigh ? 16 : isMed ? 14 : 12
+  const color = isViolation ? 'var(--danger)' : RISK_COLORS[ship.risk]
+  const size = 12
 
-  const pulseRings = isHigh ? `
-    <div style="
-      position:absolute;top:50%;left:50%;
-      width:${size * 2.8}px;height:${size * 2.8}px;
-      border-radius:50%;border:2px solid ${color};
-      transform:translate(-50%,-50%);
-      animation:markerPulseClean ${isViolation ? '1s' : '2s'} ease-out infinite;
-      opacity:0.6;
-    "></div>
-  ` : ''
+  const pulseRings = ''
 
-  const innerShape = isHigh ? `
-    <div style="
-      position:absolute;top:50%;left:50%;
-      width:${size}px;height:${size}px;
-      background:${color};
-      transform:translate(-50%,-50%) rotate(45deg);
-      box-shadow:0 0 12px ${glow}, 0 0 20px ${glow}44;
-      border: 1.5px solid #ffffff;
-    "></div>
-  ` : `
+  const innerShape = `
     <div style="
       position:absolute;top:50%;left:50%;
       width:${size}px;height:${size}px;
       background:${color};
       border-radius:50%;
       transform:translate(-50%,-50%);
-      box-shadow:0 2px 4px rgba(0,0,0,0.3), 0 0 6px ${glow};
-      border: 1px solid #ffffff;
+      box-shadow:0 2px 4px rgba(0,0,0,0.3);
+      border: 1.5px solid #ffffff;
     "></div>
   `
 
@@ -62,7 +40,6 @@ function makeShipIcon(ship, environment) {
 
   const html = `
     <style>
-      @keyframes markerPulseClean{0%{transform:translate(-50%,-50%) scale(0.6);opacity:0.8}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
       .ship-tooltip {
         background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-color);
         padding: 4px 8px; border-radius: 4px; font-family: var(--font-main); font-size: 11px; font-weight: 600;
@@ -210,7 +187,7 @@ function MapEvents({ onViewChange, viewState }) {
   return null
 }
 
-export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip, focusShip, environment, viewState, onViewChange, visible }) {
+export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip, focusShip, environment, viewState, onViewChange, visible, theme = 'dark' }) {
   const [mapStyle, setMapStyle] = useState('map') // 'map' or 'satellite'
   const [expandedClusterId, setExpandedClusterId] = useState(null)
   
@@ -251,18 +228,11 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
 
   const isNight = environment?.time === 'night'
 
-  // OpenStreetMap Default Carto Light/Standard
-  const mapUrl = isNight 
-    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-  
-  const mapAttr = isNight
-    ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-    : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  
-  // Esri World Imagery (Satellite)
-  const satUrl = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-  const satAttr = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+  // Google Maps Style Tiles
+  const mapUrl = "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+  const satUrl = "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" // Hybrid (Satellite + Labels)
+  const mapAttr = '&copy; Google Maps'
+  const satAttr = '&copy; Google Maps Satellite'
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', background: '#eef2f9' }}>
@@ -280,38 +250,40 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
         .leaflet-control-zoom a:hover { background: var(--bg-secondary) !important; }
       `}</style>
 
-      {/* Map View Toggle Layer Control */}
+      {/* Map Style Toggle */}
       <div style={{
-        position: 'absolute', top: '16px', right: '16px', zIndex: 1000,
-        background: 'var(--bg-card)', borderRadius: '8px', padding: '4px',
-        display: 'flex', gap: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        border: '1px solid var(--border-color)',
+        position: 'absolute', top: '16px', left: '16px', zIndex: 1000,
+        display: 'flex', gap: '8px', background: 'var(--bg-overlay)',
+        padding: '4px', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)',
+        backdropFilter: 'blur(8px)', boxShadow: 'var(--shadow)',
       }}>
-        <button
+        <button 
           onClick={() => setMapStyle('map')}
+          title="Street Map"
           style={{
-            padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer',
-            fontSize: '11px', fontWeight: 600, fontFamily: 'var(--font-main)',
-            background: mapStyle === 'map' ? 'var(--cyan)' : 'transparent',
-            color: mapStyle === 'map' ? '#fff' : 'var(--text-secondary)',
-            transition: 'all 0.2s ease'
+            padding: '6px 14px', borderRadius: 'var(--radius-sm)',
+            fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px',
+            cursor: 'pointer', border: 'none', transition: 'all 0.2s',
+            fontFamily: 'var(--font-main)',
+            background: mapStyle === 'sat' ? 'var(--accent)' : 'transparent',
+            color: mapStyle === 'sat' ? 'var(--bg-primary)' : 'var(--text-secondary)',
           }}
-        >
-          Map View
-        </button>
-        <button
+        >🗺️</button>
+        <button 
           onClick={() => setMapStyle('satellite')}
+          title="Satellite View"
           style={{
-            padding: '6px 12px', borderRadius: '6px', border: 'none', cursor: 'pointer',
-            fontSize: '11px', fontWeight: 600, fontFamily: 'var(--font-main)',
+            width: '40px', height: '40px', borderRadius: '10px', border: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: mapStyle === 'satellite' ? 'var(--cyan)' : 'transparent',
             color: mapStyle === 'satellite' ? '#fff' : 'var(--text-secondary)',
-            transition: 'all 0.2s ease'
+            cursor: 'pointer', fontSize: '20px', transition: 'all 0.2s',
+            boxShadow: mapStyle === 'satellite' ? '0 4px 12px var(--cyan-dim)' : 'none'
           }}
-        >
-          Satellite View
-        </button>
+        >🛰️</button>
       </div>
+
+
 
       {!ships || ships.length === 0 ? (
         <div style={{ position: 'absolute', inset: 0, zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
@@ -336,7 +308,8 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
             key="osm-tiles"
             url={mapUrl}
             attribution={mapAttr}
-            maxZoom={19}
+            maxZoom={22}
+            maxNativeZoom={19}
             className="map-tiles-transition"
           />
         ) : (
@@ -344,7 +317,8 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
             key="esri-tiles"
             url={satUrl}
             attribution={satAttr}
-            maxZoom={20}
+            maxZoom={22}
+            maxNativeZoom={17}
             className="map-tiles-transition"
           />
         )}
@@ -357,9 +331,8 @@ export default function Map2D({ ships, alerts = [], clusters = [], onSelectShip,
             pathOptions={{ 
               color: zone.color, 
               fillColor: zone.color, 
-              fillOpacity: 0.1, 
-              weight: 2.5, 
-              dashArray: '6,6',
+              fillOpacity: 0.05, 
+              weight: 1.5, 
               lineCap: 'round'
             }}
           >

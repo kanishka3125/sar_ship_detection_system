@@ -44,45 +44,45 @@ export default function OnboardingOverlay({ onDismiss }) {
       <div style={{
         width: '460px', maxWidth: '95vw',
         background: 'var(--bg-card)',
-        border: '1px solid rgba(0,212,255,0.22)',
-        borderRadius: '16px', overflow: 'hidden',
-        boxShadow: '0 0 60px rgba(0,212,255,0.12), 0 24px 80px rgba(0,0,0,0.7)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--radius)', overflow: 'hidden',
+        boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
         animation: 'modalOpen 0.35s ease forwards',
       }}>
         {/* Header */}
         <div style={{
-          background: 'linear-gradient(90deg, rgba(0,212,255,0.1), transparent)',
-          borderBottom: '1px solid rgba(0,212,255,0.12)',
+          background: 'rgba(0,0,0,0.15)',
+          borderBottom: '1px solid var(--border-color)',
           padding: '20px 24px 16px',
           display: 'flex', alignItems: 'center', gap: '12px',
         }}>
           <div style={{
-            width: '38px', height: '38px',
-            background: 'linear-gradient(135deg, #00d4ff, #0044cc)',
-            borderRadius: '9px', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: '18px', fontWeight: 800,
-            color: '#fff', flexShrink: 0, boxShadow: '0 0 18px rgba(0,212,255,0.4)',
+            width: '32px', height: '32px',
+            background: 'var(--bg-secondary)',
+            borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontSize: '18px', fontWeight: 600,
+            color: 'var(--text-primary)', flexShrink: 0,
+            border: '1px solid var(--border-bright)',
           }}>Z</div>
           <div>
-            <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '3px', background: 'linear-gradient(90deg,#00d4ff,#4488ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <div style={{ fontSize: '18px', fontWeight: 600, letterSpacing: '2px', color: 'var(--text-primary)' }}>
               ZENITH
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', letterSpacing: '1.5px' }}>
+            <div style={{ fontSize: '9px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', letterSpacing: '1px', opacity: 0.8 }}>
               MARITIME INTELLIGENCE PLATFORM
             </div>
           </div>
           <div style={{ marginLeft: 'auto', fontSize: '11px', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
-            QUICK TOUR {step + 1}/{STEPS.length}
+            STEP {step + 1}/{STEPS.length}
           </div>
         </div>
 
         {/* Progress bar */}
-        <div style={{ height: '2px', background: 'rgba(0,212,255,0.1)' }}>
+        <div style={{ height: '2px', background: 'var(--border-color)' }}>
           <div style={{
-            height: '100%', background: 'linear-gradient(90deg,#00d4ff,#4488ff)',
+            height: '100%', background: 'var(--accent)',
             width: `${((step + 1) / STEPS.length) * 100}%`,
             transition: 'width 0.35s ease',
-            boxShadow: '0 0 8px rgba(0,212,255,0.5)',
           }} />
         </div>
 
@@ -101,17 +101,16 @@ export default function OnboardingOverlay({ onDismiss }) {
           </div>
 
           {/* Dot indicators */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '24px' }}>
             {STEPS.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setStep(i)}
                 style={{
-                  width: i === step ? '20px' : '6px', height: '6px', borderRadius: '3px',
+                  width: i === step ? '16px' : '6px', height: '4px', borderRadius: '2px',
                   border: 'none', cursor: 'pointer',
-                  background: i === step ? '#00d4ff' : 'rgba(0,212,255,0.25)',
-                  transition: 'all 0.25s ease',
-                  boxShadow: i === step ? '0 0 8px rgba(0,212,255,0.5)' : 'none',
+                  background: i === step ? 'var(--accent)' : 'var(--border-color)',
+                  transition: 'all 0.2s',
                 }}
               />
             ))}
@@ -136,19 +135,19 @@ export default function OnboardingOverlay({ onDismiss }) {
             <button
               onClick={isLast ? onDismiss : () => setStep(s => s + 1)}
               style={{
-                flex: 2, padding: '10px', borderRadius: '8px',
-                background: isLast
-                  ? 'linear-gradient(135deg, rgba(0,230,118,0.2), rgba(0,212,255,0.2))'
-                  : 'linear-gradient(135deg, rgba(0,212,255,0.18), rgba(0,68,204,0.28))',
-                color: isLast ? '#00e676' : 'var(--cyan)',
-                border: `1px solid ${isLast ? 'rgba(0,230,118,0.35)' : 'rgba(0,212,255,0.3)'}`,
-                cursor: 'pointer', fontSize: '12px', fontWeight: 700,
+                flex: 2, padding: '10px', borderRadius: 'var(--radius-sm)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--border-color)',
+                cursor: 'pointer', fontSize: '11px', fontWeight: 600,
                 fontFamily: 'var(--font-main)', letterSpacing: '1px',
-                transition: 'all 0.2s',
-                boxShadow: isLast ? '0 0 16px rgba(0,230,118,0.2)' : '0 0 16px rgba(0,212,255,0.15)',
+                transition: 'opacity 0.2s',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
               }}
+              onMouseEnter={e => e.currentTarget.style.opacity = 0.9}
+              onMouseLeave={e => e.currentTarget.style.opacity = 1}
             >
-              {isLast ? '✓ LAUNCH DASHBOARD' : 'NEXT →'}
+              {isLast ? 'LAUNCH DASHBOARD' : 'NEXT'}
             </button>
             <button
               onClick={onDismiss}

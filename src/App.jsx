@@ -22,7 +22,7 @@ export default function App() {
   const [focusShip,     setFocusShip]     = useState(null)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [theme,         setTheme]         = useState(
-    () => localStorage.getItem(THEME_KEY) || 'dark'
+    () => localStorage.getItem(THEME_KEY) || 'light'
   )
 
   // 1. Environment State
@@ -208,6 +208,7 @@ export default function App() {
               onSelectShip={handleSelectShip} 
               focusShip={focusShip} 
               environment={environment}
+              theme={theme}
               viewState={viewState}
               onViewChange={(coords) => handleViewTransition('3d', coords)}
               visible={viewMode === '2d'}
@@ -233,19 +234,6 @@ export default function App() {
             />
           </div>
 
-          {/* Overlay: View Mode Tag */}
-          <div style={{
-            position: 'absolute', bottom: '16px', left: '16px', zIndex: 500,
-            background: 'rgba(4,8,20,0.90)', border: '1px solid rgba(0,212,255,0.14)',
-            borderRadius: '6px', padding: '6px 12px',
-            fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-secondary)',
-            backdropFilter: 'blur(8px)', letterSpacing: '0.3px',
-          }}>
-            <span style={{ color: 'var(--cyan)' }}>●</span>{' '}
-            {viewMode === '2d'
-              ? 'LEAFLET 2D · SENTINEL-1 SAR OVERLAY'
-              : 'THREE.JS 3D GLOBE · WEBGL ACCELERATED'}
-          </div>
         </div>
 
         {/* Alerts Panel */}

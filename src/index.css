@@ -3,43 +3,41 @@
    Dark Military-Grade Design System v2
    ======================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* ── CSS Variables ── */
+/* ── CSS Variables (Slate & Sand Intelligence Dashboard) ── */
 :root {
-  --bg-primary:     #0c1017;
-  --bg-secondary:   #131821;
-  --bg-card:        #19202b;
-  --bg-card-hover:  #202836;
-  --border-color:   rgba(163, 184, 204, 0.12);
-  --border-bright:  rgba(163, 184, 204, 0.35);
+  --bg-primary:     #1E252D;
+  --bg-secondary:   #3A444D;
+  --bg-card:        #3A444D;
+  --bg-card-hover:  rgba(58, 68, 77, 0.85);
+  --bg-overlay:     rgba(30, 37, 45, 0.9);
 
-  --cyan:           #3b82f6;
-  --cyan-dim:       rgba(59, 130, 246, 0.15);
-  --cyan-glow:      rgba(59, 130, 246, 0.3);
+  --accent:         #9E9689;
+  --accent-dim:     rgba(158, 150, 137, 0.2);
+  
+  --surface-light:  #E2D7C3;
+  --border-color:   rgba(226, 215, 195, 0.12);
+  --border-bright:  rgba(158, 150, 137, 0.4);
 
-  --danger:         #ef4444;
-  --danger-dim:     rgba(239, 68, 68, 0.15);
-  --danger-glow:    rgba(239, 68, 68, 0.3);
+  --cyan:           #9E9689; /* Remapped to accent */
+  --danger:         #8B6C6C; /* Muted red-tinted Slate */
+  --warning:        #9E9689; /* Muted Earth */
+  --success:        #9E9689; /* Muted Earth */
 
-  --warning:        #f59e0b;
-  --warning-dim:    rgba(245, 158, 11, 0.15);
+  --text-primary:   #E2D7C3;
+  --text-secondary: rgba(226, 215, 195, 0.7);
+  --text-dim:       rgba(226, 215, 195, 0.45);
 
-  --success:        #10b981;
-  --success-dim:    rgba(16, 185, 129, 0.15);
-
-  --text-primary:   #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-dim:       #64748b;
-
-  --font-main:      'Space Grotesk', -apple-system, sans-serif;
+  --font-main:      'Inter', sans-serif;
   --font-mono:      'JetBrains Mono', monospace;
 
   --panel-width:    340px;
   --navbar-height:  60px;
   --statsbar-height:52px;
-  --radius:         8px;
-  --radius-sm:      5px;
+  --radius:         6px;
+  --radius-sm:      4px;
+  --shadow:         0 4px 12px rgba(0,0,0,0.25);
 }
 
 /* ── Light Theme Overrides ── */
@@ -71,7 +69,7 @@
 }
 
 [data-theme="light"] .leaflet-container {
-  background: #e2e8f0 !important;
+  background: #f8fafc !important;
 }
 
 /* ── Reset & Base ── */
@@ -198,7 +196,14 @@ html, body {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--border-color);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow);
+  border-radius: var(--radius);
+}
+
+h1, h2, h3, h4, h5, h6, .heading {
+  font-family: var(--font-main);
+  font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
 .text-mono    { font-family: var(--font-mono); }
@@ -224,44 +229,45 @@ html, body {
 }
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(255, 45, 85, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 45, 85, 0); }
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
 }
 .red-pulse {
-  background: #ff2d55;
+  background: var(--danger);
   border-radius: 50%;
-  width: 12px;
-  height: 12px;
-  animation: pulse 1.5s infinite;
-  border: 2px solid white;
+  width: 8px;
+  height: 8px;
+  animation: pulse 2s ease-in-out infinite;
+  border: 1px solid rgba(255,255,255,0.4);
 }
 .marker-yellow {
-  background: #ffcc00;
+  background: var(--warning);
   border-radius: 50%;
-  width: 10px;
-  height: 10px;
-  border: 2px solid white;
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(255,255,255,0.4);
 }
 .marker-red-static {
-  background: #ff2d55;
+  background: var(--danger);
   border-radius: 50%;
-  width: 10px;
-  height: 10px;
-  border: 2px solid white;
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(255,255,255,0.4);
 }
 .marker-amber {
-  background: #ffb830;
+  background: var(--warning);
   border-radius: 50%;
-  width: 16px; 
-  height: 16px;
-  border: 2px solid white;
+  width: 12px; 
+  height: 12px;
+  border: 1px solid rgba(255,255,255,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 12px rgba(255, 184, 48, 0.6);
-  font-size: 10px;
+  font-size: 9px;
   cursor: pointer;
+  color: white;
+  font-weight: 600;
 }
 .cluster-label-div {
   display: flex;
@@ -272,9 +278,9 @@ html, body {
 }
 .cluster-label-text {
   color: white;
-  font-weight: 800;
+  font-weight: 600;
   font-size: 13px;
-  text-shadow: 0 0 3px black, 0 0 6px orange;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   font-family: var(--font-mono);
 }
 .detection-dot {

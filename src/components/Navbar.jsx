@@ -4,7 +4,7 @@ import { formatNavbarTime } from '../utils/timeUtils'
 const styles = {
   nav: {
     height: 'var(--navbar-height)',
-    background: 'var(--bg-secondary)',
+    background: 'var(--bg-primary)',
     borderBottom: '1px solid var(--border-color)',
     display: 'flex',
     alignItems: 'center',
@@ -13,41 +13,33 @@ const styles = {
     flexShrink: 0,
     zIndex: 1000,
     position: 'relative',
-    backdropFilter: 'blur(12px)',
-    boxShadow: '0 1px 0 rgba(0,212,255,0.08), 0 4px 24px rgba(0,0,0,0.5)',
+    boxShadow: 'var(--shadow)',
   },
   left: { display: 'flex', alignItems: 'center', gap: '16px' },
   logo: { display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' },
   logoIcon: {
-    width: '34px', height: '34px',
-    background: 'linear-gradient(135deg, #00d4ff 0%, #0044cc 100%)',
-    borderRadius: '7px',
+    width: '32px', height: '32px',
+    background: 'var(--bg-secondary)',
+    borderRadius: 'var(--radius-sm)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: '17px', fontWeight: 800, color: '#fff',
-    boxShadow: '0 0 18px rgba(0,212,255,0.45)',
+    fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)',
     letterSpacing: '-1px',
+    fontFamily: 'var(--font-main)',
+    border: '1px solid var(--border-color)',
   },
   logoText: {
     fontFamily: 'var(--font-main)',
-    fontSize: '21px', fontWeight: 800, letterSpacing: '5px',
-    background: 'linear-gradient(90deg, #00d4ff 0%, #4488ff 60%, #00d4ff 100%)',
-    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-    backgroundSize: '200% auto',
-    animation: 'shimmer 4s linear infinite',
+    fontSize: '20px', fontWeight: 600, letterSpacing: '0.5px',
+    color: 'var(--text-primary)'
   },
   logoSub: {
-    fontSize: '9px', fontWeight: 500, letterSpacing: '1.5px',
+    fontSize: '8px', fontWeight: 500, letterSpacing: '1.2px',
     color: 'var(--text-secondary)', display: 'block',
-    fontFamily: 'var(--font-mono)', WebkitTextFillColor: 'var(--text-secondary)',
-    marginTop: '-2px',
+    fontFamily: 'var(--font-mono)', opacity: 0.8,
+    marginTop: '-1px',
   },
   divider: { width: '1px', height: '28px', background: 'var(--border-color)', flexShrink: 0 },
   statusGroup: { display: 'flex', alignItems: 'center', gap: '6px' },
-  liveDot: {
-    width: '8px', height: '8px', borderRadius: '50%', background: '#00e676',
-    animation: 'live-blink 1.2s ease-in-out infinite', boxShadow: '0 0 10px #00e676',
-  },
-  liveText: { color: '#00e676', fontSize: '11px', fontWeight: 700, letterSpacing: '2px', fontFamily: 'var(--font-mono)' },
   center: { display: 'flex', alignItems: 'center', gap: '20px' },
   stat: { textAlign: 'center' },
   statVal: { display: 'block', fontSize: '18px', fontWeight: 700, lineHeight: 1, fontFamily: 'var(--font-mono)' },
@@ -55,27 +47,27 @@ const styles = {
   right: { display: 'flex', alignItems: 'center', gap: '10px' },
   toggle: {
     display: 'flex', alignItems: 'center',
-    background: 'rgba(0,20,50,0.85)',
+    background: 'rgba(0,0,0,0.2)',
     border: '1px solid var(--border-color)',
-    borderRadius: '20px', padding: '3px', gap: '2px',
+    borderRadius: 'var(--radius)', padding: '2px', gap: '2px',
   },
   toggleBtn: (active) => ({
-    padding: '5px 14px', borderRadius: '16px',
-    fontSize: '11px', fontWeight: 700, letterSpacing: '1px',
-    cursor: 'pointer', border: 'none', transition: 'all 0.25s ease',
+    padding: '4px 12px', borderRadius: '4px',
+    fontSize: '10px', fontWeight: 600, letterSpacing: '0.5px',
+    cursor: 'pointer', border: 'none', transition: 'all 0.2s ease',
     fontFamily: 'var(--font-main)',
-    background: active ? 'linear-gradient(135deg, rgba(0,212,255,0.18), rgba(0,102,255,0.3))' : 'transparent',
-    color: active ? 'var(--cyan)' : 'var(--text-secondary)',
-    boxShadow: active ? '0 0 14px rgba(0,212,255,0.3)' : 'none',
+    background: active ? 'var(--bg-secondary)' : 'transparent',
+    color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+    boxShadow: active ? '0 2px 4px rgba(0,0,0,0.2)' : 'none',
   }),
   timeStr: {
     color: 'var(--text-secondary)', fontSize: '10px', fontFamily: 'var(--font-mono)',
-    background: 'rgba(0,212,255,0.05)', padding: '4px 10px', borderRadius: '4px',
+    background: 'rgba(0,0,0,0.15)', padding: '4px 10px', borderRadius: 'var(--radius-sm)',
     border: '1px solid var(--border-color)', letterSpacing: '0.3px',
   },
 }
 
-export default function Navbar({ 
+export default function Navbar({
   viewMode, onToggleView, totalShips, highCount, alertCount, theme, onToggleTheme,
   environment, setEnvironment
 }) {
@@ -102,30 +94,6 @@ export default function Navbar({
             <span style={styles.logoText}>ZENITH</span>
             <span style={styles.logoSub}>MARITIME INTELLIGENCE PLATFORM</span>
           </div>
-        </div>
-        <div style={styles.divider} />
-        <div style={styles.statusGroup}>
-          <div style={styles.liveDot} />
-          <span style={styles.liveText}>LIVE</span>
-        </div>
-        <div style={styles.divider} />
-        {/* Radar sweep indicator */}
-        <div style={{ position: 'relative', width: '28px', height: '28px' }}>
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: '50%',
-            border: '1px solid rgba(0,212,255,0.25)',
-          }} />
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: '50%',
-            background: 'conic-gradient(from 0deg, transparent 70%, rgba(0,212,255,0.6) 100%)',
-            animation: 'radarSpin 2.4s linear infinite',
-          }} />
-          <div style={{
-            position: 'absolute', top: '50%', left: '50%',
-            width: '4px', height: '4px', borderRadius: '50%',
-            background: '#00d4ff', transform: 'translate(-50%,-50%)',
-            boxShadow: '0 0 6px #00d4ff',
-          }} />
         </div>
       </div>
 
@@ -154,30 +122,30 @@ export default function Navbar({
       {/* Right: Environment + Theme Toggle + View Toggle + Time */}
       <div style={styles.right}>
 
-        <div style={styles.divider} />
-        
         <span style={styles.timeStr}>{formatNavbarTime(time)}</span>
         {/* Theme toggle */}
         <button
           onClick={handleThemeToggle}
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           style={{
-            width: '32px', height: '32px', borderRadius: '8px',
+            height: '32px', padding: '0 12px', borderRadius: '8px',
             background: theme === 'dark' ? 'rgba(255,200,50,0.1)' : 'rgba(0,80,180,0.1)',
             border: theme === 'dark' ? '1px solid rgba(255,200,50,0.3)' : '1px solid rgba(0,80,180,0.3)',
             color: theme === 'dark' ? '#ffc832' : '#0055cc',
-            cursor: 'pointer', fontSize: '16px',
+            cursor: 'pointer', fontSize: '11px', fontWeight: 600,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.2s',
             flexShrink: 0,
+            fontFamily: 'var(--font-main)',
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.05)' }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
         >
           <span style={{ display: 'inline-block', animation: spinning ? 'iconSpin 0.4s ease' : 'none' }}>
-            {theme === 'dark' ? '☀️' : '🌙'}
+            {theme === 'dark' ? 'LIGHT' : 'DARK'}
           </span>
         </button>
+
         {/* 2D / 3D toggle */}
         <div style={styles.toggle}>
           <button style={styles.toggleBtn(viewMode === '2d')} onClick={() => onToggleView('2d')}>2D MAP</button>
