@@ -189,10 +189,8 @@ VITE_API_URL=https://your-backend-url
 
 ## 👨‍💻 Author
 
-**Rik Mukherjee**
+Team Zenith
+
 
 ---
 
-## 📜 License
-
-MIT License
