@@ -1,0 +1,147 @@
+[
+  {
+    "image": "test1.jpg",
+    "detections": [
+      {
+        "class": "ship",
+        "confidence": 0.7277,
+        "bbox": {
+          "x_center": 0.371875,
+          "y_center": 0.125,
+          "width": 0.0625,
+          "height": 0.05
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.7258,
+        "bbox": {
+          "x_center": 0.211719,
+          "y_center": 0.353125,
+          "width": 0.089063,
+          "height": 0.078125
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.7058,
+        "bbox": {
+          "x_center": 0.961719,
+          "y_center": 0.709375,
+          "width": 0.067187,
+          "height": 0.059375
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.6647,
+        "bbox": {
+          "x_center": 0.188281,
+          "y_center": 0.140625,
+          "width": 0.045312,
+          "height": 0.071875
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.6538,
+        "bbox": {
+          "x_center": 0.505469,
+          "y_center": 0.486719,
+          "width": 0.104688,
+          "height": 0.079687
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.6453,
+        "bbox": {
+          "x_center": 0.525,
+          "y_center": 0.257812,
+          "width": 0.059375,
+          "height": 0.04375
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.6162,
+        "bbox": {
+          "x_center": 0.188281,
+          "y_center": 0.563281,
+          "width": 0.092188,
+          "height": 0.051562
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.5068,
+        "bbox": {
+          "x_center": 0.878125,
+          "y_center": 0.619531,
+          "width": 0.06875,
+          "height": 0.032813
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.4646,
+        "bbox": {
+          "x_center": 0.766406,
+          "y_center": 0.1375,
+          "width": 0.023438,
+          "height": 0.046875
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.223,
+        "bbox": {
+          "x_center": 0.339062,
+          "y_center": 0.960938,
+          "width": 0.05625,
+          "height": 0.03125
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.1527,
+        "bbox": {
+          "x_center": 0.605469,
+          "y_center": 0.072656,
+          "width": 0.023438,
+          "height": 0.054688
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.1227,
+        "bbox": {
+          "x_center": 0.905469,
+          "y_center": 0.028125,
+          "width": 0.160938,
+          "height": 0.040625
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.1083,
+        "bbox": {
+          "x_center": 0.967969,
+          "y_center": 0.502344,
+          "width": 0.032813,
+          "height": 0.029687
+        }
+      },
+      {
+        "class": "ship",
+        "confidence": 0.104,
+        "bbox": {
+          "x_center": 0.346094,
+          "y_center": 0.027344,
+          "width": 0.067187,
+          "height": 0.029687
+        }
+      }
+    ]
+  }
+]

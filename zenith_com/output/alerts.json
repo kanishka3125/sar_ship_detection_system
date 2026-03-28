@@ -1,0 +1,1441 @@
+{
+  "report_timestamp": "2026-03-27T15:11:18Z",
+  "analysis_elapsed_ms": 9.8,
+  "zenith_version": "2.0.0",
+  "summary": {
+    "total_sar_detections": 14,
+    "total_ais_vessels": 5,
+    "dark_vessels": 12,
+    "spoofed_vessels": 1,
+    "legitimate_vessels": 1,
+    "ais_only_vessels": 3,
+    "total_alerts": 34,
+    "alerts_by_severity": {
+      "CRITICAL": 30,
+      "HIGH": 2,
+      "MEDIUM": 2,
+      "LOW": 0,
+      "INFO": 0
+    }
+  },
+  "vessel_reports": [
+    {
+      "sar_det_id": "test1.jpg__det000",
+      "sar_coords": {
+        "lat": 14.375,
+        "lon": 73.859375
+      },
+      "sar_conf": 0.7277,
+      "status": "LEGITIMATE",
+      "ais_match": {
+        "mmsi": "419000001",
+        "name": "LEGIT_SHIP",
+        "lat": 14.38,
+        "lon": 73.864375,
+        "speed_kts": 10.0,
+        "distance_km": 0.77
+      },
+      "alert_count": 1,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel 419000001 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.3750\u00b0, 73.8594\u00b0).",
+          "vessel_id": "419000001",
+          "sar_coords": {
+            "lat": 14.375,
+            "lon": 73.859375
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": false
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det001",
+      "sar_coords": {
+        "lat": 13.234375,
+        "lon": 73.058595
+      },
+      "sar_conf": 0.7258,
+      "status": "SPOOFED",
+      "ais_match": {
+        "mmsi": "351000002",
+        "name": "SPOOFED_SHIP",
+        "lat": 13.304375,
+        "lon": 73.098595,
+        "speed_kts": 12.0,
+        "distance_km": 8.91
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "AIS_SPOOFING",
+          "severity": "CRITICAL",
+          "description": "Vessel 351000002 (SPOOFED_SHIP) is broadcasting an AIS position 8.9 km from its SAR-verified position (spoofing threshold: 5.0 km). Strong indicator of GPS/AIS spoofing.",
+          "vessel_id": "351000002",
+          "sar_coords": {
+            "lat": 13.234375,
+            "lon": 73.058595
+          },
+          "ais_coords": {
+            "lat": 13.304375,
+            "lon": 73.098595
+          },
+          "metadata": {
+            "ais_name": "SPOOFED_SHIP",
+            "distance_km": 8.91,
+            "threshold_km": 5.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel 351000002 entered restricted zone 'Exclusive Economic Zone Alpha' at (13.2344\u00b0, 73.0586\u00b0).",
+          "vessel_id": "351000002",
+          "sar_coords": {
+            "lat": 13.234375,
+            "lon": 73.058595
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": false
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det002",
+      "sar_coords": {
+        "lat": 11.453125,
+        "lon": 76.808595
+      },
+      "sar_conf": 0.7058,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000005",
+        "name": "RENDEZ_2",
+        "lat": 12.001999999999999,
+        "lon": 74.002,
+        "speed_kts": 0.2,
+        "distance_km": 311.6
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det002' has no AIS transponder within 25.0 km (nearest AIS: 311.6 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det002",
+          "sar_coords": {
+            "lat": 11.453125,
+            "lon": 76.808595
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 311.6,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det002 entered restricted zone 'Exclusive Economic Zone Alpha' at (11.4531\u00b0, 76.8086\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det002",
+          "sar_coords": {
+            "lat": 11.453125,
+            "lon": 76.808595
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det003",
+      "sar_coords": {
+        "lat": 14.296875,
+        "lon": 72.941405
+      },
+      "sar_conf": 0.6647,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000001",
+        "name": "LEGIT_SHIP",
+        "lat": 14.38,
+        "lon": 73.864375,
+        "speed_kts": 10.0,
+        "distance_km": 99.86
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det003' has no AIS transponder within 25.0 km (nearest AIS: 99.9 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det003",
+          "sar_coords": {
+            "lat": 14.296875,
+            "lon": 72.941405
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 99.86,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det003 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.2969\u00b0, 72.9414\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det003",
+          "sar_coords": {
+            "lat": 14.296875,
+            "lon": 72.941405
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det004",
+      "sar_coords": {
+        "lat": 12.566405,
+        "lon": 74.527345
+      },
+      "sar_conf": 0.6538,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000005",
+        "name": "RENDEZ_2",
+        "lat": 12.001999999999999,
+        "lon": 74.002,
+        "speed_kts": 0.2,
+        "distance_km": 84.83
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det004' has no AIS transponder within 25.0 km (nearest AIS: 84.8 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det004",
+          "sar_coords": {
+            "lat": 12.566405,
+            "lon": 74.527345
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 84.83,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det004 entered restricted zone 'Exclusive Economic Zone Alpha' at (12.5664\u00b0, 74.5273\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det004",
+          "sar_coords": {
+            "lat": 12.566405,
+            "lon": 74.527345
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det005",
+      "sar_coords": {
+        "lat": 13.71094,
+        "lon": 74.625
+      },
+      "sar_conf": 0.6453,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000001",
+        "name": "LEGIT_SHIP",
+        "lat": 14.38,
+        "lon": 73.864375,
+        "speed_kts": 10.0,
+        "distance_km": 110.76
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det005' has no AIS transponder within 25.0 km (nearest AIS: 110.8 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det005",
+          "sar_coords": {
+            "lat": 13.71094,
+            "lon": 74.625
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 110.76,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det005 entered restricted zone 'Exclusive Economic Zone Alpha' at (13.7109\u00b0, 74.6250\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det005",
+          "sar_coords": {
+            "lat": 13.71094,
+            "lon": 74.625
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det006",
+      "sar_coords": {
+        "lat": 12.183595,
+        "lon": 72.941405
+      },
+      "sar_conf": 0.6162,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000004",
+        "name": "RENDEZ_1",
+        "lat": 12.0,
+        "lon": 74.0,
+        "speed_kts": 0.3,
+        "distance_km": 116.9
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det006' has no AIS transponder within 25.0 km (nearest AIS: 116.9 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det006",
+          "sar_coords": {
+            "lat": 12.183595,
+            "lon": 72.941405
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 116.9,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det006 entered restricted zone 'Exclusive Economic Zone Alpha' at (12.1836\u00b0, 72.9414\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det006",
+          "sar_coords": {
+            "lat": 12.183595,
+            "lon": 72.941405
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det007",
+      "sar_coords": {
+        "lat": 11.902345,
+        "lon": 76.390625
+      },
+      "sar_conf": 0.5068,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000005",
+        "name": "RENDEZ_2",
+        "lat": 12.001999999999999,
+        "lon": 74.002,
+        "speed_kts": 0.2,
+        "distance_km": 260.08
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det007' has no AIS transponder within 25.0 km (nearest AIS: 260.1 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det007",
+          "sar_coords": {
+            "lat": 11.902345,
+            "lon": 76.390625
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 260.08,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det007 entered restricted zone 'Exclusive Economic Zone Alpha' at (11.9023\u00b0, 76.3906\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det007",
+          "sar_coords": {
+            "lat": 11.902345,
+            "lon": 76.390625
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det008",
+      "sar_coords": {
+        "lat": 14.3125,
+        "lon": 75.83203
+      },
+      "sar_conf": 0.4646,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000001",
+        "name": "LEGIT_SHIP",
+        "lat": 14.38,
+        "lon": 73.864375,
+        "speed_kts": 10.0,
+        "distance_km": 212.1
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det008' has no AIS transponder within 25.0 km (nearest AIS: 212.1 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det008",
+          "sar_coords": {
+            "lat": 14.3125,
+            "lon": 75.83203
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 212.1,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det008 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.3125\u00b0, 75.8320\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det008",
+          "sar_coords": {
+            "lat": 14.3125,
+            "lon": 75.83203
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det009",
+      "sar_coords": {
+        "lat": 10.19531,
+        "lon": 73.69531
+      },
+      "sar_conf": 0.223,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "636000003",
+        "name": "GAP_SHIP",
+        "lat": 11.0,
+        "lon": 73.0,
+        "speed_kts": 13.0,
+        "distance_km": 117.39
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det009' has no AIS transponder within 25.0 km (nearest AIS: 117.4 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det009",
+          "sar_coords": {
+            "lat": 10.19531,
+            "lon": 73.69531
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 117.39,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det009 entered restricted zone 'Exclusive Economic Zone Alpha' at (10.1953\u00b0, 73.6953\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det009",
+          "sar_coords": {
+            "lat": 10.19531,
+            "lon": 73.69531
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det010",
+      "sar_coords": {
+        "lat": 14.63672,
+        "lon": 75.027345
+      },
+      "sar_conf": 0.1527,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000001",
+        "name": "LEGIT_SHIP",
+        "lat": 14.38,
+        "lon": 73.864375,
+        "speed_kts": 10.0,
+        "distance_km": 128.41
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det010' has no AIS transponder within 25.0 km (nearest AIS: 128.4 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det010",
+          "sar_coords": {
+            "lat": 14.63672,
+            "lon": 75.027345
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 128.41,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det010 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.6367\u00b0, 75.0273\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det010",
+          "sar_coords": {
+            "lat": 14.63672,
+            "lon": 75.027345
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det011",
+      "sar_coords": {
+        "lat": 14.859375,
+        "lon": 76.527345
+      },
+      "sar_conf": 0.1227,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000001",
+        "name": "LEGIT_SHIP",
+        "lat": 14.38,
+        "lon": 73.864375,
+        "speed_kts": 10.0,
+        "distance_km": 291.44
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det011' has no AIS transponder within 25.0 km (nearest AIS: 291.4 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det011",
+          "sar_coords": {
+            "lat": 14.859375,
+            "lon": 76.527345
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 291.44,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det011 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.8594\u00b0, 76.5273\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det011",
+          "sar_coords": {
+            "lat": 14.859375,
+            "lon": 76.527345
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det012",
+      "sar_coords": {
+        "lat": 12.48828,
+        "lon": 76.839845
+      },
+      "sar_conf": 0.1083,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000005",
+        "name": "RENDEZ_2",
+        "lat": 12.001999999999999,
+        "lon": 74.002,
+        "speed_kts": 0.2,
+        "distance_km": 313.08
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det012' has no AIS transponder within 25.0 km (nearest AIS: 313.1 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det012",
+          "sar_coords": {
+            "lat": 12.48828,
+            "lon": 76.839845
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 313.08,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det012 entered restricted zone 'Exclusive Economic Zone Alpha' at (12.4883\u00b0, 76.8398\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det012",
+          "sar_coords": {
+            "lat": 12.48828,
+            "lon": 76.839845
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    },
+    {
+      "sar_det_id": "test1.jpg__det013",
+      "sar_coords": {
+        "lat": 14.86328,
+        "lon": 73.73047
+      },
+      "sar_conf": 0.104,
+      "status": "DARK",
+      "ais_match": {
+        "mmsi": "419000001",
+        "name": "LEGIT_SHIP",
+        "lat": 14.38,
+        "lon": 73.864375,
+        "speed_kts": 10.0,
+        "distance_km": 55.64
+      },
+      "alert_count": 2,
+      "alerts": [
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "DARK_VESSEL",
+          "severity": "CRITICAL",
+          "description": "SAR detection 'test1.jpg__det013' has no AIS transponder within 25.0 km (nearest AIS: 55.6 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+          "vessel_id": "test1.jpg__det013",
+          "sar_coords": {
+            "lat": 14.86328,
+            "lon": 73.73047
+          },
+          "ais_coords": null,
+          "metadata": {
+            "nearest_ais_km": 55.64,
+            "dark_radius_km": 25.0
+          }
+        },
+        {
+          "timestamp": "2026-03-27T15:11:18Z",
+          "alert_type": "RESTRICTED_ZONE_VIOLATION",
+          "severity": "CRITICAL",
+          "description": "Vessel test1.jpg__det013 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.8633\u00b0, 73.7305\u00b0). Vessel is DARK (no AIS).",
+          "vessel_id": "test1.jpg__det013",
+          "sar_coords": {
+            "lat": 14.86328,
+            "lon": 73.73047
+          },
+          "ais_coords": null,
+          "metadata": {
+            "zone_id": "EEZ_ALPHA",
+            "zone_name": "Exclusive Economic Zone Alpha",
+            "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+            "is_dark": true
+          }
+        }
+      ]
+    }
+  ],
+  "all_alerts": [
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel 419000001 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.3750\u00b0, 73.8594\u00b0).",
+      "vessel_id": "419000001",
+      "sar_coords": {
+        "lat": 14.375,
+        "lon": 73.859375
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": false
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "AIS_SPOOFING",
+      "severity": "CRITICAL",
+      "description": "Vessel 351000002 (SPOOFED_SHIP) is broadcasting an AIS position 8.9 km from its SAR-verified position (spoofing threshold: 5.0 km). Strong indicator of GPS/AIS spoofing.",
+      "vessel_id": "351000002",
+      "sar_coords": {
+        "lat": 13.234375,
+        "lon": 73.058595
+      },
+      "ais_coords": {
+        "lat": 13.304375,
+        "lon": 73.098595
+      },
+      "metadata": {
+        "ais_name": "SPOOFED_SHIP",
+        "distance_km": 8.91,
+        "threshold_km": 5.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel 351000002 entered restricted zone 'Exclusive Economic Zone Alpha' at (13.2344\u00b0, 73.0586\u00b0).",
+      "vessel_id": "351000002",
+      "sar_coords": {
+        "lat": 13.234375,
+        "lon": 73.058595
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": false
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det002' has no AIS transponder within 25.0 km (nearest AIS: 311.6 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det002",
+      "sar_coords": {
+        "lat": 11.453125,
+        "lon": 76.808595
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 311.6,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det002 entered restricted zone 'Exclusive Economic Zone Alpha' at (11.4531\u00b0, 76.8086\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det002",
+      "sar_coords": {
+        "lat": 11.453125,
+        "lon": 76.808595
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det003' has no AIS transponder within 25.0 km (nearest AIS: 99.9 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det003",
+      "sar_coords": {
+        "lat": 14.296875,
+        "lon": 72.941405
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 99.86,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det003 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.2969\u00b0, 72.9414\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det003",
+      "sar_coords": {
+        "lat": 14.296875,
+        "lon": 72.941405
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det004' has no AIS transponder within 25.0 km (nearest AIS: 84.8 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det004",
+      "sar_coords": {
+        "lat": 12.566405,
+        "lon": 74.527345
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 84.83,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det004 entered restricted zone 'Exclusive Economic Zone Alpha' at (12.5664\u00b0, 74.5273\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det004",
+      "sar_coords": {
+        "lat": 12.566405,
+        "lon": 74.527345
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det005' has no AIS transponder within 25.0 km (nearest AIS: 110.8 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det005",
+      "sar_coords": {
+        "lat": 13.71094,
+        "lon": 74.625
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 110.76,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det005 entered restricted zone 'Exclusive Economic Zone Alpha' at (13.7109\u00b0, 74.6250\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det005",
+      "sar_coords": {
+        "lat": 13.71094,
+        "lon": 74.625
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det006' has no AIS transponder within 25.0 km (nearest AIS: 116.9 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det006",
+      "sar_coords": {
+        "lat": 12.183595,
+        "lon": 72.941405
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 116.9,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det006 entered restricted zone 'Exclusive Economic Zone Alpha' at (12.1836\u00b0, 72.9414\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det006",
+      "sar_coords": {
+        "lat": 12.183595,
+        "lon": 72.941405
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det007' has no AIS transponder within 25.0 km (nearest AIS: 260.1 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det007",
+      "sar_coords": {
+        "lat": 11.902345,
+        "lon": 76.390625
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 260.08,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det007 entered restricted zone 'Exclusive Economic Zone Alpha' at (11.9023\u00b0, 76.3906\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det007",
+      "sar_coords": {
+        "lat": 11.902345,
+        "lon": 76.390625
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det008' has no AIS transponder within 25.0 km (nearest AIS: 212.1 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det008",
+      "sar_coords": {
+        "lat": 14.3125,
+        "lon": 75.83203
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 212.1,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det008 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.3125\u00b0, 75.8320\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det008",
+      "sar_coords": {
+        "lat": 14.3125,
+        "lon": 75.83203
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det009' has no AIS transponder within 25.0 km (nearest AIS: 117.4 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det009",
+      "sar_coords": {
+        "lat": 10.19531,
+        "lon": 73.69531
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 117.39,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det009 entered restricted zone 'Exclusive Economic Zone Alpha' at (10.1953\u00b0, 73.6953\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det009",
+      "sar_coords": {
+        "lat": 10.19531,
+        "lon": 73.69531
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det010' has no AIS transponder within 25.0 km (nearest AIS: 128.4 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det010",
+      "sar_coords": {
+        "lat": 14.63672,
+        "lon": 75.027345
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 128.41,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det010 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.6367\u00b0, 75.0273\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det010",
+      "sar_coords": {
+        "lat": 14.63672,
+        "lon": 75.027345
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det011' has no AIS transponder within 25.0 km (nearest AIS: 291.4 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det011",
+      "sar_coords": {
+        "lat": 14.859375,
+        "lon": 76.527345
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 291.44,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det011 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.8594\u00b0, 76.5273\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det011",
+      "sar_coords": {
+        "lat": 14.859375,
+        "lon": 76.527345
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det012' has no AIS transponder within 25.0 km (nearest AIS: 313.1 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det012",
+      "sar_coords": {
+        "lat": 12.48828,
+        "lon": 76.839845
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 313.08,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det012 entered restricted zone 'Exclusive Economic Zone Alpha' at (12.4883\u00b0, 76.8398\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det012",
+      "sar_coords": {
+        "lat": 12.48828,
+        "lon": 76.839845
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "DARK_VESSEL",
+      "severity": "CRITICAL",
+      "description": "SAR detection 'test1.jpg__det013' has no AIS transponder within 25.0 km (nearest AIS: 55.6 km). Vessel likely disabled AIS \u2014 possible smuggling, sanctions evasion, or illegal fishing.",
+      "vessel_id": "test1.jpg__det013",
+      "sar_coords": {
+        "lat": 14.86328,
+        "lon": 73.73047
+      },
+      "ais_coords": null,
+      "metadata": {
+        "nearest_ais_km": 55.64,
+        "dark_radius_km": 25.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel test1.jpg__det013 entered restricted zone 'Exclusive Economic Zone Alpha' at (14.8633\u00b0, 73.7305\u00b0). Vessel is DARK (no AIS).",
+      "vessel_id": "test1.jpg__det013",
+      "sar_coords": {
+        "lat": 14.86328,
+        "lon": 73.73047
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": true
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel 636000003 entered restricted zone 'Exclusive Economic Zone Alpha' at (11.0000\u00b0, 73.0000\u00b0).",
+      "vessel_id": "636000003",
+      "sar_coords": {
+        "lat": 11.0,
+        "lon": 73.0
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": false
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel 419000004 entered restricted zone 'Exclusive Economic Zone Alpha' at (12.0000\u00b0, 74.0000\u00b0).",
+      "vessel_id": "419000004",
+      "sar_coords": {
+        "lat": 12.0,
+        "lon": 74.0
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": false
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RESTRICTED_ZONE_VIOLATION",
+      "severity": "CRITICAL",
+      "description": "Vessel 419000005 entered restricted zone 'Exclusive Economic Zone Alpha' at (12.0020\u00b0, 74.0020\u00b0).",
+      "vessel_id": "419000005",
+      "sar_coords": {
+        "lat": 12.001999999999999,
+        "lon": 74.002
+      },
+      "ais_coords": null,
+      "metadata": {
+        "zone_id": "EEZ_ALPHA",
+        "zone_name": "Exclusive Economic Zone Alpha",
+        "zone_desc": "Indian EEZ \u2014 unauthorised transit prohibited",
+        "is_dark": false
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "AIS_GAP",
+      "severity": "HIGH",
+      "description": "GAP_SHIP AIS gap 50.0 mins",
+      "vessel_id": "636000003",
+      "sar_coords": null,
+      "ais_coords": {
+        "lat": 11.0,
+        "lon": 73.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "RENDEZVOUS",
+      "severity": "HIGH",
+      "description": "419000004 and 419000005 meeting",
+      "vessel_id": "419000004",
+      "sar_coords": null,
+      "ais_coords": null
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "LOITERING",
+      "severity": "MEDIUM",
+      "description": "419000004 (RENDEZ_1) near stationary at 0.3 kts",
+      "vessel_id": "419000004",
+      "sar_coords": null,
+      "ais_coords": {
+        "lat": 12.0,
+        "lon": 74.0
+      }
+    },
+    {
+      "timestamp": "2026-03-27T15:11:18Z",
+      "alert_type": "LOITERING",
+      "severity": "MEDIUM",
+      "description": "419000005 (RENDEZ_2) near stationary at 0.2 kts",
+      "vessel_id": "419000005",
+      "sar_coords": null,
+      "ais_coords": {
+        "lat": 12.001999999999999,
+        "lon": 74.002
+      }
+    }
+  ],
+  "ais_vessels": [
+    {
+      "mmsi": "419000001",
+      "name": "LEGIT_SHIP",
+      "lat": 14.38,
+      "lon": 73.864375,
+      "speed_kts": 10.0,
+      "course": 120.0,
+      "heading": 118.0,
+      "ship_type": 70,
+      "status": 0,
+      "flag": "IN",
+      "imo": "IMO000001",
+      "callsign": "CALL001",
+      "last_seen": "2026-03-27T15:09:18Z"
+    },
+    {
+      "mmsi": "351000002",
+      "name": "SPOOFED_SHIP",
+      "lat": 13.304375,
+      "lon": 73.098595,
+      "speed_kts": 12.0,
+      "course": 45.0,
+      "heading": 47.0,
+      "ship_type": 70,
+      "status": 0,
+      "flag": "IN",
+      "imo": "IMO000002",
+      "callsign": "CALL002",
+      "last_seen": "2026-03-27T15:09:18Z"
+    },
+    {
+      "mmsi": "636000003",
+      "name": "GAP_SHIP",
+      "lat": 11.0,
+      "lon": 73.0,
+      "speed_kts": 13.0,
+      "course": 50.0,
+      "heading": 52.0,
+      "ship_type": 70,
+      "status": 0,
+      "flag": "IN",
+      "imo": "IMO000003",
+      "callsign": "CALL003",
+      "last_seen": "2026-03-27T14:21:18Z"
+    },
+    {
+      "mmsi": "419000004",
+      "name": "RENDEZ_1",
+      "lat": 12.0,
+      "lon": 74.0,
+      "speed_kts": 0.3,
+      "course": 200.0,
+      "heading": 200.0,
+      "ship_type": 30,
+      "status": 0,
+      "flag": "IN",
+      "imo": "IMO000004",
+      "callsign": "CALL004",
+      "last_seen": "2026-03-27T15:09:18Z"
+    },
+    {
+      "mmsi": "419000005",
+      "name": "RENDEZ_2",
+      "lat": 12.001999999999999,
+      "lon": 74.002,
+      "speed_kts": 0.2,
+      "course": 210.0,
+      "heading": 210.0,
+      "ship_type": 30,
+      "status": 0,
+      "flag": "IN",
+      "imo": "IMO000005",
+      "callsign": "CALL005",
+      "last_seen": "2026-03-27T15:09:18Z"
+    }
+  ],
+  "restricted_zones": [
+    {
+      "id": "EEZ_ALPHA",
+      "name": "Exclusive Economic Zone Alpha",
+      "lat_min": 10.0,
+      "lat_max": 15.0,
+      "lon_min": 72.0,
+      "lon_max": 77.0,
+      "severity": "CRITICAL",
+      "description": "Indian EEZ \u2014 unauthorised transit prohibited"
+    },
+    {
+      "id": "PIRACY_CORRIDOR",
+      "name": "Piracy Risk Corridor",
+      "lat_min": 5.0,
+      "lat_max": 12.0,
+      "lon_min": 43.0,
+      "lon_max": 55.0,
+      "severity": "HIGH",
+      "description": "Gulf of Aden \u2014 active piracy risk zone"
+    },
+    {
+      "id": "NAVAL_BRAVO",
+      "name": "Naval Exercise Area Bravo",
+      "lat_min": 20.0,
+      "lat_max": 25.0,
+      "lon_min": 60.0,
+      "lon_max": 65.0,
+      "severity": "HIGH",
+      "description": "Active naval exercise corridor \u2014 civilian transit restricted"
+    }
+  ]
+}
