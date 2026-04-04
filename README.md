@@ -86,9 +86,9 @@ app/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
-### 1️⃣ Clone Repository
+### 1️ Clone Repository
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/zenith-maritime-intelligence.git
@@ -97,7 +97,7 @@ cd zenith-maritime-intelligence
 
 ---
 
-### 2️⃣ Frontend Setup
+### 2️ Frontend Setup
 
 ```bash
 cd frontend
@@ -113,7 +113,7 @@ http://localhost:5173
 
 ---
 
-### 3️⃣ Backend Setup
+### 3️ Backend Setup
 
 ```bash
 cd backend
@@ -156,7 +156,7 @@ Uploads SAR images and returns vessel intelligence.
 
 ---
 
-## 🌍 Deployment
+##  Deployment (future)
 
 ### Frontend
 
@@ -174,7 +174,7 @@ VITE_API_URL=https://your-backend-url
 
 ---
 
-## 🎯 Use Cases
+##  Use Cases
 
 * Coast guard surveillance
 * Illegal fishing detection
@@ -183,7 +183,7 @@ VITE_API_URL=https://your-backend-url
 
 ---
 
-## 🏆 Highlights
+##  Highlights
 
 * Real-time AI-powered maritime intelligence
 * Works in low-visibility conditions (SAR advantage)
@@ -191,9 +191,13 @@ VITE_API_URL=https://your-backend-url
 
 ---
 
-## 👨‍💻 Author
+##  Author
 
 Team Zenith
+Rik Mukherjee
+Hari Pooreni Balaji
+Kanishka Sharma
+Aadhidev M S
 
 
 ---
