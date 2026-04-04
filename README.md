@@ -107,24 +107,24 @@ Detection of anomalous vessel behaviour including:
 ### Frontend Structure
 
 src/
- ├── components/
- │   ├── Map2D.jsx
- │   ├── Globe3D.jsx
- │   ├── AlertsPanel.jsx
- │   ├── ShipModal.jsx
- │   ├── StatsBar.jsx
- │   └── SARViewer.jsx
- ├── api.js
- └── App.jsx
+├── components/
+│   ├── Map2D.jsx
+│   ├── Globe3D.jsx
+│   ├── AlertsPanel.jsx
+│   ├── ShipModal.jsx
+│   ├── StatsBar.jsx
+│   └── SARViewer.jsx
+├── api.js
+└── App.jsx
 
 ### Backend Structure
 
 app/
- ├── main.py (zenith_combined.py)
- ├── output/
- ├── test_pictures/
- └── models/
-     └── last.pt
+├── main.py  (zenith_combined.py)
+├── output/
+├── test_pictures/
+└── models/
+    └── last.pt
 ---
 
 ## Use Cases
