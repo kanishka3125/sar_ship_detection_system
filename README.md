@@ -79,15 +79,22 @@ Detection of anomalous vessel behaviour including:
 
 - FastAPI (Python)  
 - YOLOv8 (Ultralytics, fine-tuned)
-
-**Model Performance:**
-- mAP50: 0.871  
-- mAP50–95: 0.401  
-
 - Image processing and inference pipeline  
 - AIS-SAR data fusion logic  
 
 ---
+
+## Model Performance
+
+> Trained on open-source Sentinel-1 SAR imagery dataset.
+
+| Metric | Value |
+|--------|-------|
+| mAP50 | 0.871 |
+| mAP50-95 | 0.401 |
+| Model | YOLOv8 (fine-tuned) |
+| Dataset | Sentinel-1 (Open SAR) |
+| Task | Vessel Detection |
 
 ## Features
 
