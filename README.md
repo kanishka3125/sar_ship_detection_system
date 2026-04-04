@@ -1,10 +1,10 @@
-# 🚢 Zenith – Maritime Intelligence Platform
+#  Zenith – Maritime Intelligence Platform
 
 An AI-powered maritime surveillance system that detects vessels from SAR (Synthetic Aperture Radar) satellite imagery, correlates them with AIS data, and generates real-time intelligence insights.
 
 ---
 
-## 🧠 Overview
+##  Overview
 
 Zenith is designed to assist maritime authorities in identifying suspicious vessels such as:
 
@@ -16,7 +16,7 @@ It combines **computer vision + data fusion + interactive visualization** into a
 
 ---
 
-## 🔁 System Pipeline
+##  System Pipeline
 
 ```
 SAR Images → YOLOv8 Detection → AIS Matching → Risk Analysis → Alerts → Visualization
@@ -24,24 +24,27 @@ SAR Images → YOLOv8 Detection → AIS Matching → Risk Analysis → Alerts �
 
 ---
 
-## ⚙️ Tech Stack
+##  Tech Stack
 
-### 🎨 Frontend
+###  Frontend
 
 * React (Vite)
 * Leaflet (2D Map)
 * React Three Fiber (3D visualization)
 * Custom UI (Alerts Panel, Ship Modal, Stats Bar)
 
-### 🧠 Backend
+###  Backend
 
 * FastAPI (Python)
-* YOLOv8 (Ultralytics)
+* YOLOv8 finetuned (Ultralytics)
+  Validation results:
+  mAP50:    0.871
+  mAP50-95: 0.401
 * Image processing pipeline
 
 ---
 
-## ✨ Features
+##  Features
 
 * 📡 Upload SAR images for analysis
 * 🚢 Detect ships using YOLOv8
@@ -74,8 +77,9 @@ src/
 
 ```
 app/
- ├── main.py
- ├── pipeline/
+ ├── main.py( zenith_combined.py)
+ ├── output (pictures)
+ ├── test_pictures
  └── models/
      └── last.pt
 ```
