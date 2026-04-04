@@ -1,66 +1,111 @@
-#  Zenith – Maritime Intelligence Platform
+# Zenith – Maritime Intelligence Platform
 
-An AI-powered maritime surveillance system that detects vessels from SAR (Synthetic Aperture Radar) satellite imagery, correlates them with AIS data, and generates real-time intelligence insights.
-
----
-
-##  Overview
-
-Zenith is designed to assist maritime authorities in identifying suspicious vessels such as:
-
-* 🌑 Dark vessels (AIS turned off)
-* 🚫 Zone violations
-* ⚠️ High-risk maritime activity
-
-It combines **computer vision + data fusion + interactive visualization** into a single platform.
+An AI-powered maritime surveillance and intelligence system that detects vessels from Synthetic Aperture Radar (SAR) satellite imagery, correlates them with AIS (Automatic Identification System) data, and generates actionable real-time insights.
 
 ---
 
-##  System Pipeline
+## Overview
 
-```
-SAR Images → YOLOv8 Detection → AIS Matching → Risk Analysis → Alerts → Visualization
-```
+Zenith is designed to support maritime monitoring and security operations by enabling the detection and analysis of non-cooperative or high-risk vessels.
 
----
+The system focuses on identifying:
 
-##  Tech Stack
+- 🌑 **Dark vessels** (AIS disabled or absent)  
+- 🚫 **Unauthorized zone violations**  
+- ⚠️ **Anomalous or high-risk maritime behaviour**
 
-###  Frontend
-
-* React (Vite)
-* Leaflet (2D Map)
-* React Three Fiber (3D visualization)
-* Custom UI (Alerts Panel, Ship Modal, Stats Bar)
-
-###  Backend
-
-* FastAPI (Python)
-* YOLOv8 finetuned (Ultralytics)
-  Validation results:
-  mAP50:    0.871
-  mAP50-95: 0.401
-* Image processing pipeline
+By combining **computer vision, geospatial data fusion, and real-time visualization**, Zenith provides a unified intelligence layer for maritime situational awareness.
 
 ---
 
-##  Features
+## Problem Statement
 
-* 📡 Upload SAR images for analysis
-* 🚢 Detect ships using YOLOv8
-* 🔍 AIS correlation for vessel identification
-* 🚨 Dynamic alert generation
-* 🗺️ Interactive 2D map visualization
-* 📊 Real-time stats dashboard
-* 🧠 Vessel intelligence profiles
+Maritime surveillance systems often rely heavily on AIS data, which can be intentionally disabled, spoofed, or manipulated. This creates critical blind spots in monitoring and enforcement.
+
+Zenith addresses this challenge by integrating:
+
+- **SAR imagery** (detects physical presence of vessels regardless of visibility or AIS status)  
+- **AIS data** (provides vessel identity and reported behavior)
+
+This fusion enables reliable identification of discrepancies between **observed reality** and **reported data**.
 
 ---
 
-## 📁 Project Structure
+## System Pipeline
+SAR Images → YOLOv8 Detection → AIS Correlation → Behaviour Analysis → Risk Classification → Alerts → Visualization
+
+
+---
+
+## Core Capabilities
+
+### 🛰️ Layer 1 — SAR vs AIS (Identity Verification)
+
+- Detection of vessels from SAR imagery  
+- Spatial correlation with AIS signals  
+- Classification into:
+  - DARK (no AIS match)
+  - SPOOFED (mismatch in position/identity)
+  - LEGITIMATE (consistent match)
+
+---
+
+### 📡 Layer 2 — Behavioural Intelligence (AIS-based)
+
+Detection of anomalous vessel behaviour including:
+
+- Loitering patterns  
+- Excessive or abnormal speed  
+- Heading inconsistencies  
+- AIS transmission gaps  
+- Vessel rendezvous events  
+- Restricted zone violations  
+- Blacklisted vessel tracking  
+
+---
+
+## Tech Stack
 
 ### Frontend
 
-```
+- React (Vite)  
+- Leaflet (2D geospatial visualization)  
+- React Three Fiber (3D visualization)  
+- Custom UI components (Alerts Panel, Ship Modal, Stats Dashboard)
+
+---
+
+### Backend
+
+- FastAPI (Python)  
+- YOLOv8 (Ultralytics, fine-tuned)
+
+**Model Performance:**
+- mAP50: 0.871  
+- mAP50–95: 0.401  
+
+- Image processing and inference pipeline  
+- AIS-SAR data fusion logic  
+
+---
+
+## Features
+
+- 📡 SAR image ingestion and processing  
+- 🚢 AI-based vessel detection  
+- 🔍 AIS correlation for identity verification  
+- 🚨 Automated alert generation  
+- 🗺️ Interactive geospatial visualization (2D + 3D)  
+- 📊 Real-time analytics dashboard  
+- 🧠 Vessel intelligence profiling  
+
+---
+
+
+## System Architecture
+
+### Frontend Structure
+
 src/
  ├── components/
  │   ├── Map2D.jsx
@@ -71,134 +116,49 @@ src/
  │   └── SARViewer.jsx
  ├── api.js
  └── App.jsx
-```
 
-### Backend
+### Backend Structure
 
-```
 app/
- ├── main.py( zenith_combined.py)
- ├── output (pictures)
- ├── test_pictures
+ ├── main.py (zenith_combined.py)
+ ├── output/
+ ├── test_pictures/
  └── models/
      └── last.pt
-```
+---
+
+## Use Cases
+Maritime domain awareness
+Coastal surveillance and security
+Illegal fishing detection
+Anti-smuggling operations
+Search and rescue intelligence support
 
 ---
 
-##  Getting Started
+## Data Compatibility
 
-### 1️ Clone Repository
+Zenith is designed to be data-source agnostic and can integrate with:
 
-```bash
-git clone https://github.com/YOUR_USERNAME/zenith-maritime-intelligence.git
-cd zenith-maritime-intelligence
-```
-
----
-
-### 2️ Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend runs on:
-
-```
-http://localhost:5173
-```
+Open SAR datasets (e.g., Sentinel-1)
+Commercial SAR providers
+National systems such as NAIS (AIS) and RISAT (SAR), subject to access
 
 ---
 
-### 3️ Backend Setup
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-Backend runs on:
-
-```
-http://localhost:8000
-```
+## Highlights
+Works in low-visibility conditions (SAR advantage)
+Detects non-cooperative vessels
+Combines multi-source intelligence (SAR + AIS)
+Scalable for real-world maritime operations
 
 ---
 
-## 🔗 API Endpoint
-
-### POST `/api/v1/pipeline-multi`
-
-Uploads SAR images and returns vessel intelligence.
-
-#### Example Response:
-
-```json
-{
-  "vessel_reports": [
-    {
-      "sar_det_id": 1,
-      "sar_coords": { "lat": 13.08, "lon": 80.27 },
-      "confidence": 0.79,
-      "status": "DARK",
-      "ais_match": {
-        "name": "Unknown Vessel",
-        "speed_kts": 12
-      }
-    }
-  ]
-}
-```
-
----
-
-##  Deployment (future)
-
-### Frontend
-
-* Deploy on Vercel or Netlify
-
-### Backend
-
-* Deploy on Render or Railway
-
-### Environment Variable
-
-```
-VITE_API_URL=https://your-backend-url
-```
-
----
-
-##  Use Cases
-
-* Coast guard surveillance
-* Illegal fishing detection
-* Maritime border security
-* Anti-smuggling operations
-
----
-
-##  Highlights
-
-* Real-time AI-powered maritime intelligence
-* Works in low-visibility conditions (SAR advantage)
-* Combines multiple data sources (SAR + AIS)
-
----
-
-##  Author
+## Team
 
 Team Zenith
+
 * Rik Mukherjee
 * Hari Pooreni Balaji
 * Kanishka Sharma
 * Aadhidev M S
-
-
----
-
