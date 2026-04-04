@@ -194,10 +194,10 @@ VITE_API_URL=https://your-backend-url
 ##  Author
 
 Team Zenith
-Rik Mukherjee
-Hari Pooreni Balaji
-Kanishka Sharma
-Aadhidev M S
+* Rik Mukherjee
+* Hari Pooreni Balaji
+* Kanishka Sharma
+* Aadhidev M S
 
 
 ---
