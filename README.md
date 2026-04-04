@@ -105,7 +105,7 @@ Detection of anomalous vessel behaviour including:
 ## System Architecture
 
 ### Frontend Structure
-
+'''text
 src/
 ├── components/
 │ ├── Map2D.jsx
@@ -116,17 +116,18 @@ src/
 │ └── SARViewer.jsx
 ├── api.js
 └── App.jsx
-
+'''
 ---
 
 ### Backend Structure
-
+'''text
 app/
 ├── main.py (zenith_combined.py)
 ├── output/
 ├── test_pictures/
 └── models/
 └── last.pt
+'''
 ---
 
 ## Use Cases
